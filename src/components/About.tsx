@@ -8,7 +8,6 @@ import {
   Users,
   Wrench,
 } from "lucide-react";
-import { IMAGES } from "@/data/site";
 import { Reveal, SectionHeading } from "@/components/ui/Reveal";
 import { useLanguage } from "@/i18n/LanguageContext";
 
@@ -49,7 +48,8 @@ function Counter({
 }
 
 export default function About() {
-  const { t, lang } = useLanguage();
+  const { t, lang, siteData } = useLanguage();
+  const images = siteData.images;
 
   return (
     <section id="about" className="relative section-pad overflow-hidden">
@@ -71,7 +71,7 @@ export default function About() {
               <div className="absolute -right-5 -bottom-6 h-32 w-32 rounded-full bg-royal-100/70 blur-xl" />
               <div className="relative overflow-hidden rounded-[2.25rem] shadow-soft">
                 <img
-                  src={IMAGES.aboutA}
+                  src={images.aboutA}
                   alt={t.about.imgCaptionTitle}
                   loading="lazy"
                   decoding="async"
@@ -84,7 +84,7 @@ export default function About() {
                 className="glass absolute -right-3 -bottom-8 w-52 rounded-3xl p-4 sm:-right-8 sm:w-56"
               >
                 <img
-                  src={IMAGES.aboutB}
+                  src={images.aboutB}
                   alt=""
                   aria-hidden="true"
                   loading="lazy"

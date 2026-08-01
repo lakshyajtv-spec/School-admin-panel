@@ -8,20 +8,20 @@ import {
   Sparkles,
   Users,
 } from "lucide-react";
-import { IMAGES } from "@/data/site";
-import { useT } from "@/i18n/LanguageContext";
+import { useLanguage } from "@/i18n/LanguageContext";
 
 const badgeIcons = [HeartHandshake, Landmark, BookOpenCheck];
 
 export default function Hero() {
-  const t = useT();
+  const { t, siteData } = useLanguage();
   const reduced = useReducedMotion();
+  const images = siteData.images;
 
   return (
     <section id="home" className="relative overflow-hidden">
       <div className="absolute inset-0">
         <img
-          src={IMAGES.hero}
+          src={images.hero}
           alt=""
           aria-hidden="true"
           fetchPriority="high"
@@ -137,7 +137,7 @@ export default function Hero() {
             className="glass-dark relative overflow-hidden rounded-[2.5rem] p-3 shadow-[0_40px_80px_-30px_rgba(0,0,0,.6)]"
           >
             <img
-              src={IMAGES.heroCard}
+              src={images.heroCard}
               alt={t.hero.cardTitle}
               className="h-[220px] w-full rounded-[2rem] object-cover sm:h-[380px] lg:h-[440px]"
             />

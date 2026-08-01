@@ -7,13 +7,22 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { dictionaries, type Content, type Lang } from "@/i18n/content";
+import { type Content, type Lang } from "@/i18n/content";
+import {
+  loadSiteData,
+  persistSiteData,
+  type SiteData,
+} from "@/admin/contentStore";
 
 type LanguageValue = {
   lang: Lang;
   t: Content;
   setLang: (l: Lang) => void;
   toggleLang: () => void;
+  /** Full editable site data (EN + HI + images) — backed by localStorage. */
+  siteData: SiteData;
+  saveSiteData: (d: SiteData) => void;
+  refreshSiteData: () => void;
 };
 
 const LanguageContext = createContext<LanguageValue | null>(null);
@@ -32,6 +41,7 @@ function readInitialLang(): Lang {
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
   const [lang, setLangState] = useState<Lang>(readInitialLang);
+  const [siteData, setSiteData] = useState<SiteData>(loadSiteData);
 
   useEffect(() => {
     document.documentElement.lang = lang;
@@ -56,9 +66,26 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     [],
   );
 
+  const saveSiteData = useCallback((d: SiteData) => {
+    setSiteData(d);
+    persistSiteData(d);
+  }, []);
+
+  const refreshSiteData = useCallback(() => {
+    setSiteData(loadSiteData());
+  }, []);
+
   const value = useMemo<LanguageValue>(
-    () => ({ lang, t: dictionaries[lang] as Content, setLang, toggleLang }),
-    [lang, setLang, toggleLang],
+    () => ({
+      lang,
+      t: siteData[lang] as Content,
+      setLang,
+      toggleLang,
+      siteData,
+      saveSiteData,
+      refreshSiteData,
+    }),
+    [lang, siteData, setLang, toggleLang, saveSiteData, refreshSiteData],
   );
 
   return (

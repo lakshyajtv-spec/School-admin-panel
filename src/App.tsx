@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { motion, useScroll, useSpring } from "framer-motion";
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
@@ -12,38 +12,31 @@ import CampusGallery from "@/components/CampusGallery";
 import Achievements from "@/components/Achievements";
 import NoticeBoard from "@/components/NoticeBoard";
 import Footer from "@/components/Footer";
-import AdminPanel from "@/components/AdminPanel";
+import AdminApp from "@/admin/AdminApp";
 import { LanguageProvider } from "@/i18n/LanguageContext";
 
+/**
+ * Tiny hash router:
+ *   #/lakshya-admin  → Admin panel
+ *   anything else (or empty) → public website
+ */
 function useHashRoute() {
   const [hash, setHash] = useState(() => window.location.hash);
-
   useEffect(() => {
     const onHash = () => setHash(window.location.hash);
     window.addEventListener("hashchange", onHash);
     return () => window.removeEventListener("hashchange", onHash);
   }, []);
-
-  const isAdmin = hash === "#/admin";
-  const closeAdmin = useCallback(() => {
-    window.location.hash = "";
-  }, []);
-
-  return { isAdmin, closeAdmin };
+  return hash;
 }
 
-function SiteContent() {
+function PublicSite() {
   const { scrollYProgress } = useScroll();
   const progress = useSpring(scrollYProgress, {
     stiffness: 120,
     damping: 26,
     restDelta: 0.001,
   });
-  const { isAdmin, closeAdmin } = useHashRoute();
-
-  if (isAdmin) {
-    return <AdminPanel onClose={closeAdmin} />;
-  }
 
   return (
     <div className="relative min-h-screen bg-[#f6f9fd]">
@@ -71,9 +64,11 @@ function SiteContent() {
 }
 
 export default function App() {
+  const hash = useHashRoute();
+
   return (
     <LanguageProvider>
-      <SiteContent />
+      {hash.startsWith("#/lakshya-admin") ? <AdminApp /> : <PublicSite />}
     </LanguageProvider>
   );
 }

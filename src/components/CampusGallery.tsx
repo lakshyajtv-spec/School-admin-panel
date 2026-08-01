@@ -3,13 +3,16 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, Expand, X } from "lucide-react";
 import { GALLERY_MEDIA } from "@/data/site";
 import { Reveal, SectionHeading } from "@/components/ui/Reveal";
-import { useT } from "@/i18n/LanguageContext";
+import { useLanguage } from "@/i18n/LanguageContext";
 import { cn } from "@/utils/cn";
 
 export default function CampusGallery() {
-  const t = useT();
+  const { t, siteData } = useLanguage();
   const [index, setIndex] = useState<number | null>(null);
   const count = GALLERY_MEDIA.length;
+
+  /** Gallery image URLs are editable from the admin panel. */
+  const gallerySrc = (i: number) => siteData.images.gallery[i] ?? "";
 
   const close = useCallback(() => setIndex(null), []);
   const next = useCallback(
@@ -37,7 +40,6 @@ export default function CampusGallery() {
   }, [index, close, next, prev]);
 
   const activeText = index === null ? null : t.gallery.items[index];
-  const activeMedia = index === null ? null : GALLERY_MEDIA[index];
 
   return (
     <section
@@ -74,7 +76,7 @@ export default function CampusGallery() {
                   className="group relative h-full w-full overflow-hidden rounded-[1.25rem] border border-white/10 text-left sm:rounded-[1.6rem]"
                 >
                   <img
-                    src={media.src}
+                    src={gallerySrc(i)}
                     alt={text.title}
                     loading="lazy"
                     decoding="async"
@@ -104,7 +106,7 @@ export default function CampusGallery() {
       </div>
 
       <AnimatePresence>
-        {activeText && activeMedia && (
+        {activeText && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -153,7 +155,7 @@ export default function CampusGallery() {
               className="w-full max-w-4xl overflow-hidden rounded-[1.5rem] border border-white/15 bg-white/5 sm:rounded-[1.75rem]"
             >
               <img
-                src={activeMedia.src}
+                src={gallerySrc(index ?? 0)}
                 alt={activeText.title}
                 className="max-h-[62vh] w-full object-cover"
               />

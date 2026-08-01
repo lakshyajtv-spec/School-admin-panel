@@ -1,6 +1,7 @@
 /**
  * Structural / non-translatable data only.
  * Every user-visible string lives in `src/i18n/content.ts`.
+ * Default images can be overridden from the admin panel.
  */
 
 export const NAV_LINKS = [
@@ -26,38 +27,29 @@ export const IMAGES = {
     "https://images.pexels.com/photos/2982449/pexels-photo-2982449.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=500&w=800",
 };
 
-/** Gallery images — captions/titles come from the content dictionary by index. */
+/** Single source of truth for editable images (also used by admin panel). */
+export const DEFAULT_IMAGES = {
+  ...IMAGES,
+  gallery: [
+    "https://images.pexels.com/photos/2982449/pexels-photo-2982449.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=800&w=1200",
+    "https://images.pexels.com/photos/35551059/pexels-photo-35551059.jpeg?auto=compress&cs=tinysrgb&dpr=1&h=550&w=800",
+    "https://images.pexels.com/photos/35550999/pexels-photo-35550999.jpeg?auto=compress&cs=tinysrgb&dpr=1&h=550&w=800",
+    "https://images.pexels.com/photos/8472004/pexels-photo-8472004.jpeg?auto=compress&cs=tinysrgb&dpr=1&h=550&w=800",
+    "https://images.pexels.com/photos/5530438/pexels-photo-5530438.jpeg?auto=compress&cs=tinysrgb&dpr=1&h=550&w=800",
+    "https://images.pexels.com/photos/8927020/pexels-photo-8927020.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=550&w=800",
+    "https://images.pexels.com/photos/35551044/pexels-photo-35551044.jpeg?auto=compress&cs=tinysrgb&dpr=1&h=550&w=800",
+    "https://images.pexels.com/photos/13812360/pexels-photo-13812360.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=550&w=800",
+  ],
+};
+
+/** Gallery layout (grid spans) — image URLs come from the admin store. */
 export const GALLERY_MEDIA = [
-  {
-    src: "https://images.pexels.com/photos/2982449/pexels-photo-2982449.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=800&w=1200",
-    span: "md:col-span-2 md:row-span-2",
-  },
-  {
-    src: "https://images.pexels.com/photos/35551059/pexels-photo-35551059.jpeg?auto=compress&cs=tinysrgb&dpr=1&h=550&w=800",
-    span: "",
-  },
-  {
-    src: "https://images.pexels.com/photos/35550999/pexels-photo-35550999.jpeg?auto=compress&cs=tinysrgb&dpr=1&h=550&w=800",
-    span: "",
-  },
-  {
-    src: "https://images.pexels.com/photos/8472004/pexels-photo-8472004.jpeg?auto=compress&cs=tinysrgb&dpr=1&h=550&w=800",
-    span: "md:col-span-2",
-  },
-  {
-    src: "https://images.pexels.com/photos/5530438/pexels-photo-5530438.jpeg?auto=compress&cs=tinysrgb&dpr=1&h=550&w=800",
-    span: "",
-  },
-  {
-    src: "https://images.pexels.com/photos/8927020/pexels-photo-8927020.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=550&w=800",
-    span: "",
-  },
-  {
-    src: "https://images.pexels.com/photos/35551044/pexels-photo-35551044.jpeg?auto=compress&cs=tinysrgb&dpr=1&h=550&w=800",
-    span: "",
-  },
-  {
-    src: "https://images.pexels.com/photos/13812360/pexels-photo-13812360.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=550&w=800",
-    span: "md:col-span-2",
-  },
+  { span: "md:col-span-2 md:row-span-2" },
+  { span: "" },
+  { span: "" },
+  { span: "md:col-span-2" },
+  { span: "" },
+  { span: "" },
+  { span: "" },
+  { span: "md:col-span-2" },
 ];
