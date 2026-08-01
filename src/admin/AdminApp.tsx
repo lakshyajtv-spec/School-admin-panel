@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Bell, Building2, ChevronLeft, Download, ExternalLink,
@@ -47,14 +47,30 @@ const NAV: NavItem[] = [
 
 function AdminPage() {
   const [page, setPage] = useState("dashboard");
-  const [data, setData] = useState<AllSiteData>(loadData);
+  const [data, setData] = useState<AllSiteData | null>(null);
   const [collapsed, setCollapsed] = useState(false);
   const toast = useToast();
 
+  // Async initial load
+  useEffect(() => {
+    loadData().then(setData);
+  }, []);
+
   const update = (d: AllSiteData) => {
     setData(d);
-    saveData(d); // auto-save to localStorage + website sees it instantly
+    saveData(d);
   };
+
+  if (!data) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#f0f4fa]">
+        <div className="flex flex-col items-center gap-4">
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-royal-200 border-t-royal-700" />
+          <p className="font-body text-sm text-slate-500">Loading admin panel…</p>
+        </div>
+      </div>
+    );
+  }
 
   const handlePublish = () => {
     publishChanges(data).then(() => {
