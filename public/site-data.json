@@ -1,0 +1,440 @@
+{
+  "en": {
+    "meta": {
+      "schoolName": "Govt. Boys H. S. School Cantt, Guna",
+      "schoolNameCaps": "GOVT. BOYS H. S. SCHOOL",
+      "schoolPlace": "Cantt, Guna",
+      "efa": "EFA Government School",
+      "efaFull": "Education For All (EFA) Government School"
+    },
+    "topbar": {
+      "langLabel": "हिन्दी"
+    },
+    "nav": {
+      "home": "Home",
+      "about": "About",
+      "facilities": "Facilities",
+      "campus": "Campus",
+      "teachers": "Teachers",
+      "gallery": "Gallery",
+      "vocational": "Vocational",
+      "principal": "Principal",
+      "menu": "Menu"
+    },
+    "hero": {
+      "badge": "Government of Madhya Pradesh · District Guna",
+      "titleA": "Welcome to",
+      "titleHighlight": "Govt. Boys H. S. School",
+      "titleB": "Cantt, Guna",
+      "subtitle": "Empowering students through quality education, discipline and excellence. An Education For All (EFA) government school providing education from Class 1 to 12, with vocational education in IT/ITES and Electronics & Hardware from Class 9 onwards.",
+      "exploreBtn": "Explore Campus",
+      "badges": ["EFA Government School", "MPBSE Curriculum", "Class 1 – 12"],
+      "cardTitle": "Learning that builds skills",
+      "cardSub": "Academics · Vocational trades · Practical science",
+      "floatA": "Students",
+      "floatB": "Vocational Trades",
+      "marquee": [
+        "Government Higher Secondary School · Classes 1 to 12",
+        "Vocational Education from Class 9: IT / ITES",
+        "Vocational Education from Class 9: Electronics & Hardware",
+        "Education For All (EFA) Government School",
+        "Library · Computer Lab · Science Labs",
+        "Government supported learning"
+      ]
+    },
+    "about": {
+      "eyebrow": "Who We Are",
+      "title": "About Our",
+      "highlight": "School",
+      "desc": "A government higher secondary school in Guna, Madhya Pradesh, working under the Education For All (EFA) initiative to provide accessible, affordable and useful education from Class 1 to Class 12.",
+      "missionTag": "Our Mission",
+      "missionHeading": "Quality government education from Class 1 to 12, backed by practical skills for every student.",
+      "p1": "Govt. Boys H. S. School Cantt, Guna is a state government higher secondary school serving students of Guna city and nearby areas from Class 1 to Class 12. As an Education For All (EFA) school, we welcome learners from every background and follow the curriculum prescribed by the M.P. Board of Secondary Education.",
+      "p2": "From Class 9 onwards, the school runs vocational education in IT / ITES and Electronics & Hardware, so that students acquire job-ready skills alongside their board studies.",
+      "points": [
+        "Government school with free textbooks as per state schemes",
+        "Vocational education from Class 9 in IT/ITES and Electronics & Hardware",
+        "Guidance for government scholarships and forms",
+        "Safe, disciplined and inclusive learning environment"
+      ],
+      "imgCaptionTitle": "Our Campus",
+      "imgCaptionSub": "Cantt area, Guna (M.P.)",
+      "stats": [
+        { "value": 700, "suffix": "+", "label": "Students", "hint": "Class 1 to 12" },
+        { "value": 25, "suffix": "+", "label": "Teaching Staff", "hint": "Government teachers" },
+        { "value": 15, "suffix": "", "label": "Classrooms", "hint": "Regular sections" },
+        { "value": 2, "suffix": "", "label": "Vocational Trades", "hint": "IT/ITES · Electronics" }
+      ]
+    },
+    "highlights": {
+      "eyebrow": "School Highlights",
+      "title": "What Our School",
+      "highlight": "Provides",
+      "desc": "Simple…",
+      "items": [
+        {"title": "Govt HSS", "desc": "MPBSE Class 1-12."},
+        {"title": "Staff", "desc": "Experienced."},
+        {"title": "Labs", "desc": "Science practicals."},
+        {"title": "Comp Lab", "desc": "IT and vocational."},
+        {"title": "Library", "desc": "Books and reading."},
+        {"title": "Vocational", "desc": "IT/ITES & Electronics from Class 9."},
+        {"title": "Playground", "desc": "Assembly and sports."},
+        {"title": "Govt Support", "desc": "Scholarships, books, EFA."}
+      ]
+    },
+    "facilities": {
+      "eyebrow": "Infrastructure",
+      "title": "Our School",
+      "highlight": "Facilities",
+      "desc": "Everyday facilities available on campus.",
+      "items": [
+        {"title": "Computer Lab", "desc": "IT/ITES vocational practicals.", "meta": "Vocational"},
+        {"title": "Physics Lab", "desc": "Mechanics, optics, electricity.", "meta": "Senior Wing"},
+        {"title": "Chemistry Lab", "desc": "Reagents and glassware.", "meta": "Practical"},
+        {"title": "Biology Lab", "desc": "Microscopes and specimens.", "meta": "Senior"},
+        {"title": "Electronics Lab", "desc": "Hardware vocational trade.", "meta": "Vocational"},
+        {"title": "Library", "desc": "Textbooks and reading room.", "meta": "Reading"},
+        {"title": "Drinking Water", "desc": "Clean water on campus.", "meta": "Campus"},
+        {"title": "Playground", "desc": "Assembly and sports.", "meta": "Ground"}
+      ]
+    },
+    "vocational": {
+      "eyebrow": "NSQF Skill Education",
+      "title": "Vocational",
+      "highlight": "Education",
+      "desc": "Vocational education starts from Class 9.",
+      "startInfo": "Vocational Education starts from Class 9.",
+      "levelTitle": "Curriculum by Level",
+      "objectivesLabel": "Objectives",
+      "skillsLabel": "Skills Students Learn",
+      "careersLabel": "Career Opportunities",
+      "levels": [
+        {"range": "Class 9–10", "name": "Foundation", "desc": "Basics.", "points": ["Intro","Safety","Projects","NSQF 3/4"]},
+        {"range": "Class 11–12", "name": "Advanced", "desc": "Advanced.", "points": ["Theory","Industry","Complex","NSQF 5"]}
+      ],
+      "subjects": [
+        {
+          "name": "IT / ITES", "tagline": "Information Technology",
+          "intro": "Computers and office software.", "objectives": ["Confidence","Skills","Certification","Base"],
+          "skills": ["Fundamentals","Word","Excel","Presentations","Internet","HTML"],
+          "careers": ["Data entry","Operator","Care","Support","Further: ITI/BCA"]
+        },
+        {
+          "name": "Electronics & Hardware", "tagline": "Electronics and Repair",
+          "intro": "Components and systems.", "objectives": ["Understand","Safety","Assembly","Certification"],
+          "skills": ["Components","Soldering","Assembly","Troubleshoot","Safety","Networking"],
+          "careers": ["Technician","Field","Repair","CCTV","Further: ITI/Diploma"]
+        }
+      ],
+      "importanceTitle": "Importance",
+      "importanceDesc": "Real skill with study.",
+      "importancePoints": [
+        {"title":"Skill+Study","desc":"Certificate and skill together."},
+        {"title":"Employability","desc":"Entry-level work."},
+        {"title":"Self-employment","desc":"Start small."},
+        {"title":"Career path","desc":"ITI, polytechnic, diploma."}
+      ],
+      "teachersTitle": "Vocational Teachers",
+      "teachersDesc": "Trainers for each trade.",
+      "teachers": [
+        {"role":"IT/ITES Teacher","subject":"IT & ITES","designation":"Vocational Trainer","note":"Name to be updated"},
+        {"role":"Electronics Teacher","subject":"Electronics & Hardware","designation":"Vocational Trainer","note":"Name to be updated"}
+      ]
+    },
+    "gallery": {
+      "eyebrow": "Campus & Gallery",
+      "title": "A Glimpse of",
+      "highlight": "Our Campus",
+      "desc": "Classrooms, labs, library and grounds.",
+      "note": "Representative images",
+      "items": [
+        {"title":"Building","caption":"Academic block."},
+        {"title":"Classroom","caption":"Regular teaching."},
+        {"title":"Library","caption":"Reading material."},
+        {"title":"Chemistry","caption":"Lab practical."},
+        {"title":"Computer Lab","caption":"IT/ITES practicals."},
+        {"title":"Playground","caption":"Assembly and sports."},
+        {"title":"Biology Lab","caption":"Microscopes."},
+        {"title":"Activities","caption":"Co-curricular."}
+      ]
+    },
+    "principal": {
+      "eyebrow": "Principal's Message",
+      "quoteA": "Education is the strongest tool a student can carry",
+      "quoteB": "from school into life.",
+      "p1": "Dear students and parents…",
+      "p2": "Vocational trades from Class 9…",
+      "name": "Principal",
+      "designation": "Govt. Boys H. S. School Cantt, Guna",
+      "note": "Name and photograph to be updated by school office"
+    },
+    "teachers": {
+      "eyebrow": "Our Faculty",
+      "title": "Our Teaching",
+      "highlight": "Staff",
+      "desc": "Government-appointed subject teachers.",
+      "note": "Teacher names and photographs will be updated by the school office.",
+      "facultyLabel": "Subject Faculty",
+      "list": [
+        {"subject":"Mathematics","designation":"Subject Teacher"},
+        {"subject":"Physics","designation":"Subject Teacher"},
+        {"subject":"Chemistry","designation":"Subject Teacher"},
+        {"subject":"Biology","designation":"Subject Teacher"},
+        {"subject":"English","designation":"Subject Teacher"},
+        {"subject":"Hindi & Sanskrit","designation":"Subject Teacher"},
+        {"subject":"Social Science","designation":"Subject Teacher"},
+        {"subject":"Computer / IT","designation":"Vocational Trainer"}
+      ]
+    },
+    "achievements": {
+      "eyebrow": "School Activities",
+      "title": "Activities &",
+      "highlight": "Participation",
+      "desc": "Regular academic and co-curricular activities.",
+      "items": [
+        {"period":"Every Year","tag":"Academics","title":"Board Exam Preparation","body":"Regular tests and revision."},
+        {"period":"Every Year","tag":"Vocational","title":"Vocational Training","body":"NSQF skill assessment."},
+        {"period":"Annual","tag":"Sports","title":"Sports Day","body":"Annual sports meet."},
+        {"period":"Annual","tag":"Science","title":"Science Exhibition","body":"Models and charts."},
+        {"period":"As Notified","tag":"Scholarships","title":"Scholarship Assistance","body":"Help with forms."}
+      ]
+    },
+    "notices": {
+      "eyebrow": "Announcements",
+      "title": "School",
+      "highlight": "Notice Board",
+      "desc": "Latest information about examinations and activities.",
+      "read": "Read",
+      "items": [
+        {"tag":"Latest","date":"Current Session","title":"Parent–Teacher Meeting","body":"Visit school as notified."},
+        {"tag":"Exam","date":"Current Session","title":"Exam Timetable","body":"Displayed on notice board."},
+        {"tag":"Holiday","date":"Current Session","title":"Holiday Calendar","body":"As per MP School Education Dept."},
+        {"tag":"Vocational","date":"Current Session","title":"Vocational Trade for Class 9","body":"Choose IT/ITES or Electronics."}
+      ]
+    },
+    "footer": {
+      "about": "A government higher secondary school in Guna (M.P.) under the Education For All (EFA) initiative.",
+      "quickLinks": "Quick Links",
+      "resources": "Information",
+      "resourceItems": ["Vocational Education","Examination & Results","Government Scholarships","Transfer Certificate","EFA Information"],
+      "rights": "All rights reserved.",
+      "designed": "Designed with",
+      "designedFor": "for",
+      "backToTop": "Back to Top",
+      "devCredit": "Website Designed & Developed by Lakshya Jatav"
+    }
+  },
+  "hi": {
+    "meta": {
+      "schoolName": "शा. बालक उ. मा. विद्यालय कैंट, गुना",
+      "schoolNameCaps": "शा. बालक उ. मा. विद्यालय",
+      "schoolPlace": "कैंट, गुना",
+      "efa": "ई.एफ.ए. शासकीय विद्यालय",
+      "efaFull": "सर्व शिक्षा (EFA) शासकीय विद्यालय"
+    },
+    "topbar": {
+      "langLabel": "English"
+    },
+    "nav": {
+      "home": "मुख्य पृष्ठ",
+      "about": "परिचय",
+      "facilities": "सुविधाएँ",
+      "campus": "परिसर",
+      "teachers": "शिक्षकगण",
+      "gallery": "चित्र दीर्घा",
+      "vocational": "व्यावसायिक",
+      "principal": "प्राचार्य",
+      "menu": "मेन्यू"
+    },
+    "hero": {
+      "badge": "मध्यप्रदेश शासन · जिला गुना",
+      "titleA": "आपका स्वागत है",
+      "titleHighlight": "शा. बालक उ. मा. विद्यालय",
+      "titleB": "कैंट, गुना",
+      "subtitle": "गुणवत्तापूर्ण शिक्षा…",
+      "exploreBtn": "परिसर देखें",
+      "badges": ["ई.एफ.ए.","एम.पी. बोर्ड","कक्षा 1-12"],
+      "cardTitle": "कौशल वाली शिक्षा",
+      "cardSub": "शैक्षणिक · व्यावसायिक · विज्ञान",
+      "floatA": "विद्यार्थी",
+      "floatB": "व्यावसायिक ट्रेड",
+      "marquee": ["कक्षा 1-12","आईटी","इलेक्ट्रॉनिक्स","EFA","लैब","सरकारी"]
+    },
+    "about": {
+      "eyebrow": "हमारा परिचय",
+      "title": "हमारे विद्यालय के",
+      "highlight": "बारे में",
+      "desc": "गुना, म.प्र. में शासकीय विद्यालय।",
+      "missionTag": "हमारा उद्देश्य",
+      "missionHeading": "कक्षा 1-12 तक गुणवत्तापूर्ण शिक्षा।",
+      "p1": "शा. बालक उ. मा. विद्यालय कैंट, गुना…",
+      "p2": "कक्षा 9 से व्यावसायिक शिक्षा…",
+      "points": ["पाठ्यपुस्तकें","व्यावसायिक","छात्रवृत्ति","सुरक्षित वातावरण"],
+      "imgCaptionTitle": "हमारा परिसर",
+      "imgCaptionSub": "कैंट, गुना",
+      "stats": [
+        {"value":700,"suffix":"+","label":"विद्यार्थी","hint":"कक्षा 1-12"},
+        {"value":25,"suffix":"+","label":"शिक्षक","hint":"शासकीय"},
+        {"value":15,"suffix":"","label":"कक्षा-कक्ष","hint":"नियमित"},
+        {"value":2,"suffix":"","label":"ट्रेड","hint":"IT/ITES · इलेक्ट्रॉनिक्स"}
+      ]
+    },
+    "highlights": {
+      "eyebrow": "विशेषताएँ",
+      "title": "क्या",
+      "highlight": "उपलब्ध",
+      "desc": "सरल सुविधाएँ।",
+      "items": [
+        {"title":"शासकीय विद्यालय","desc":"कक्षा 1-12 MPBSE।"},
+        {"title":"अनुभवी स्टाफ","desc":"शासकीय शिक्षक।"},
+        {"title":"प्रयोगशालाएँ","desc":"विज्ञान प्रायोगिक।"},
+        {"title":"कंप्यूटर लैब","desc":"IT और व्यावसायिक।"},
+        {"title":"पुस्तकालय","desc":"पुस्तकें एवं अध्ययन।"},
+        {"title":"व्यावसायिक","desc":"कक्षा 9 से IT/ITES।"},
+        {"title":"खेल मैदान","desc":"सभा एवं खेल।"},
+        {"title":"सरकारी सहायता","desc":"छात्रवृत्ति, पुस्तकें।"}
+      ]
+    },
+    "facilities": {
+      "eyebrow": "आधारभूत संरचना",
+      "title": "सुविधाएँ",
+      "highlight": "हमारी",
+      "desc": "दैनिक सुविधाएँ।",
+      "items": [
+        {"title":"कंप्यूटर लैब","desc":"IT/ITES प्रायोगिक।","meta":"व्यावसायिक"},
+        {"title":"भौतिकी लैब","desc":"यांत्रिकी, प्रकाशिकी।","meta":"वरिष्ठ"},
+        {"title":"रसायन लैब","desc":"रसायन एवं काँच।","meta":"प्रायोगिक"},
+        {"title":"जीवविज्ञान लैब","desc":"सूक्ष्मदर्शी।","meta":"वरिष्ठ"},
+        {"title":"इलेक्ट्रॉनिक्स लैब","desc":"हार्डवेयर ट्रेड।","meta":"व्यावसायिक"},
+        {"title":"पुस्तकालय","desc":"पुस्तकें एवं वाचनालय।","meta":"वाचनालय"},
+        {"title":"पेयजल","desc":"स्वच्छ जल।","meta":"परिसर"},
+        {"title":"खेल मैदान","desc":"सभा एवं खेल।","meta":"मैदान"}
+      ]
+    },
+    "vocational": {
+      "eyebrow": "NSQF कौशल शिक्षा",
+      "title": "व्यावसायिक",
+      "highlight": "शिक्षा",
+      "desc": "कक्षा 9 से व्यावसायिक शिक्षा।",
+      "startInfo": "कक्षा 9 से व्यावसायिक शिक्षा।",
+      "levelTitle": "स्तर अनुसार पाठ्यक्रम",
+      "objectivesLabel": "उद्देश्य",
+      "skillsLabel": "कौशल",
+      "careersLabel": "रोजगार",
+      "levels": [
+        {"range":"कक्षा 9–10","name":"बुनियादी","desc":"बुनियादी।","points":["परिचय","सुरक्षा","प्रोजेक्ट","NSQF 3/4"]},
+        {"range":"कक्षा 11–12","name":"उन्नत","desc":"उन्नत।","points":["सिद्धांत","उद्योग","जटिल","NSQF 5"]}
+      ],
+      "subjects": [
+        {
+          "name":"आईटी / आईटीईएस","tagline":"सूचना प्रौद्योगिकी",
+          "intro":"कंप्यूटर और ऑफिस सॉफ्टवेयर।","objectives":["आत्मविश्वास","कौशल","प्रमाणन","आधार"],
+          "skills":["बुनियादी","वर्ड","एक्सेल","प्रेजेंटेशन","इंटरनेट","HTML"],
+          "careers":["डेटा एंट्री","ऑपरेटर","केयर","सपोर्ट","आगे: ITI/BCA"]
+        },
+        {
+          "name":"इलेक्ट्रॉनिक्स","tagline":"इलेक्ट्रॉनिक्स और मरम्मत",
+          "intro":"पुर्जे और सिस्टम।","objectives":["समझना","सुरक्षा","असेंबली","प्रमाणन"],
+          "skills":["पुर्जे","सोल्डरिंग","असेंबली","समस्या","सुरक्षा","नेटवर्किंग"],
+          "careers":["तकनीशियन","फील्ड","मरम्मत","CCTV","आगे: ITI/डिप्लोमा"]
+        }
+      ],
+      "importanceTitle": "महत्व",
+      "importanceDesc": "पढ़ाई के साथ कौशल।",
+      "importancePoints": [
+        {"title":"कौशल+पढ़ाई","desc":"प्रमाणपत्र और कौशल।"},
+        {"title":"रोजगार","desc":"प्रारंभिक कार्य।"},
+        {"title":"स्वरोजगार","desc":"छोटा सेटअप।"},
+        {"title":"कैरियर","desc":"ITI, पॉलिटेक्निक।"}
+      ],
+      "teachersTitle": "व्यावसायिक शिक्षक",
+      "teachersDesc": "प्रत्येक ट्रेड के प्रशिक्षक।",
+      "teachers": [
+        {"role":"आईटी शिक्षक","subject":"IT & ITES","designation":"प्रशिक्षक","note":"नाम अपडेट होगा"},
+        {"role":"इलेक्ट्रॉनिक्स शिक्षक","subject":"इलेक्ट्रॉनिक्स","designation":"प्रशिक्षक","note":"नाम अपडेट होगा"}
+      ]
+    },
+    "gallery": {
+      "eyebrow": "परिसर एवं चित्र दीर्घा",
+      "title": "एक झलक",
+      "highlight": "हमारे परिसर की",
+      "desc": "कक्षाएँ, प्रयोगशालाएँ, पुस्तकालय।",
+      "note": "प्रतीकात्मक चित्र",
+      "items": [
+        {"title":"भवन","caption":"शैक्षणिक भवन।"},
+        {"title":"कक्षा","caption":"नियमित अध्यापन।"},
+        {"title":"पुस्तकालय","caption":"अध्ययन सामग्री।"},
+        {"title":"रसायन","caption":"प्रायोगिक कार्य।"},
+        {"title":"कंप्यूटर लैब","caption":"IT/ITES प्रायोगिक।"},
+        {"title":"खेल मैदान","caption":"सभा एवं खेल।"},
+        {"title":"जीवविज्ञान लैब","caption":"सूक्ष्मदर्शी।"},
+        {"title":"गतिविधियाँ","caption":"सह-शैक्षणिक।"}
+      ]
+    },
+    "principal": {
+      "eyebrow": "प्राचार्य का संदेश",
+      "quoteA": "शिक्षा सबसे मजबूत साधन",
+      "quoteB": "विद्यालय से जीवन तक।",
+      "p1": "प्रिय विद्यार्थियों एवं अभिभावकों…",
+      "p2": "कक्षा 9 से व्यावसायिक ट्रेड…",
+      "name": "प्राचार्य",
+      "designation": "शा. बालक उ. मा. विद्यालय कैंट, गुना",
+      "note": "नाम एवं छायाचित्र अपडेट होगा"
+    },
+    "teachers": {
+      "eyebrow": "हमारे शिक्षक",
+      "title": "शिक्षक",
+      "highlight": "स्टाफ",
+      "desc": "शासकीय विषय शिक्षक।",
+      "note": "नाम एवं छायाचित्र अपडेट होंगे।",
+      "facultyLabel": "विषय शिक्षक",
+      "list": [
+        {"subject":"गणित","designation":"शिक्षक"},
+        {"subject":"भौतिकी","designation":"शिक्षक"},
+        {"subject":"रसायन","designation":"शिक्षक"},
+        {"subject":"जीवविज्ञान","designation":"शिक्षक"},
+        {"subject":"अंग्रेज़ी","designation":"शिक्षक"},
+        {"subject":"हिन्दी-संस्कृत","designation":"शिक्षक"},
+        {"subject":"सामाजिक","designation":"शिक्षक"},
+        {"subject":"कंप्यूटर","designation":"प्रशिक्षक"}
+      ]
+    },
+    "achievements": {
+      "eyebrow": "गतिविधियाँ",
+      "title": "गतिविधियाँ",
+      "highlight": "सहभागिता",
+      "desc": "शैक्षणिक एवं सह-शैक्षणिक।",
+      "items": [
+        {"period":"हर वर्ष","tag":"शैक्षणिक","title":"बोर्ड तैयारी","body":"नियमित परीक्षण।"},
+        {"period":"हर वर्ष","tag":"व्यावसायिक","title":"प्रशिक्षण","body":"NSQF मूल्यांकन।"},
+        {"period":"वार्षिक","tag":"खेल","title":"खेल दिवस","body":"वार्षिक आयोजन।"},
+        {"period":"वार्षिक","tag":"विज्ञान","title":"प्रदर्शनी","body":"मॉडल और चार्ट।"},
+        {"period":"सूचना","tag":"छात्रवृत्ति","title":"सहायता","body":"फॉर्म सहायता।"}
+      ]
+    },
+    "notices": {
+      "eyebrow": "सूचनाएँ",
+      "title": "सूचना",
+      "highlight": "पटल",
+      "desc": "परीक्षा एवं गतिविधियाँ।",
+      "read": "देखें",
+      "items": [
+        {"tag":"नवीन","date":"वर्तमान","title":"अभिभावक बैठक","body":"निर्धारित तिथि पर आएँ।"},
+        {"tag":"परीक्षा","date":"वर्तमान","title":"समय-सारणी","body":"सूचना पटल पर।"},
+        {"tag":"अवकाश","date":"वर्तमान","title":"कैलेंडर","body":"शिक्षा विभाग अनुसार।"},
+        {"tag":"व्यावसायिक","date":"वर्तमान","title":"कक्षा 9 ट्रेड","body":"IT/ITES या इलेक्ट्रॉनिक्स।"}
+      ]
+    },
+    "footer": {
+      "about": "गुना (म.प्र.) में शासकीय उच्चतर माध्यमिक विद्यालय।",
+      "quickLinks": "त्वरित लिंक",
+      "resources": "जानकारी",
+      "resourceItems": ["व्यावसायिक","परीक्षा","छात्रवृत्ति","TC","EFA"],
+      "rights": "सर्वाधिकार सुरक्षित।",
+      "designed": "सादर",
+      "designedFor": "हेतु",
+      "backToTop": "ऊपर",
+      "devCredit": "लक्ष्य जाटव द्वारा डिज़ाइन"
+    }
+  }
+}

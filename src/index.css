@@ -1,0 +1,195 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800;900&family=Outfit:wght@400;500;600;700&family=Inter:wght@300;400;500;600&family=Noto+Sans+Devanagari:wght@400;500;600;700;800&display=swap");
+@import "tailwindcss";
+
+@theme {
+  --font-display: "Poppins", ui-sans-serif, system-ui, sans-serif;
+  --font-heading: "Outfit", ui-sans-serif, system-ui, sans-serif;
+  --font-body: "Inter", ui-sans-serif, system-ui, sans-serif;
+
+  --color-royal-50: #eef5fc;
+  --color-royal-100: #d7e7f7;
+  --color-royal-200: #aecfef;
+  --color-royal-300: #7cb0e2;
+  --color-royal-400: #4a8ccf;
+  --color-royal-500: #2a6cb0;
+  --color-royal-600: #175a99;
+  --color-royal-700: #0f4c81;
+  --color-royal-800: #0c3c66;
+  --color-royal-900: #082b49;
+  --color-royal-950: #051c30;
+
+  --color-gold-50: #fdf9ed;
+  --color-gold-100: #f8efd0;
+  --color-gold-200: #f0dda1;
+  --color-gold-300: #e5c76b;
+  --color-gold-400: #d4af37;
+  --color-gold-500: #bf982a;
+  --color-gold-600: #9c7823;
+  --color-gold-700: #7a5c1f;
+  --color-gold-800: #5c451c;
+  --color-gold-900: #3d2e14;
+
+  --shadow-soft: 0 18px 50px -18px rgba(15, 76, 129, 0.35);
+  --shadow-glass: 0 8px 32px rgba(8, 43, 73, 0.12);
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 80px;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    font-family: var(--font-body);
+    background-color: #f6f9fd;
+    color: #0b2137;
+    overflow-x: hidden;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-heading);
+    font-weight: 600;
+  }
+
+  /* Devanagari fallback so Hindi never renders in a default system serif */
+  html[lang="hi"] body,
+  html[lang="hi"] h1,
+  html[lang="hi"] h2,
+  html[lang="hi"] h3,
+  html[lang="hi"] h4,
+  html[lang="hi"] h5,
+  html[lang="hi"] h6,
+  html[lang="hi"] button,
+  html[lang="hi"] input,
+  html[lang="hi"] select,
+  html[lang="hi"] textarea {
+    font-family:
+      "Poppins", "Noto Sans Devanagari", ui-sans-serif, system-ui, sans-serif;
+  }
+
+  html[lang="hi"] h1,
+  html[lang="hi"] h2,
+  html[lang="hi"] h3 {
+    letter-spacing: 0;
+    line-height: 1.25;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-gold-400);
+    outline-offset: 3px;
+    border-radius: 8px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    .animate-floaty,
+    .animate-marquee {
+      animation: none !important;
+    }
+  }
+
+  ::selection {
+    background: rgba(212, 175, 55, 0.35);
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #eaf1fa;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #0f4c81, #175a99);
+    border-radius: 999px;
+    border: 2px solid #eaf1fa;
+  }
+}
+
+@utility glass {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.82) 0%,
+    rgba(255, 255, 255, 0.55) 100%
+  );
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  box-shadow: var(--shadow-glass);
+}
+
+@utility glass-dark {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.14) 0%,
+    rgba(255, 255, 255, 0.05) 100%
+  );
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+@utility text-gradient-gold {
+  background: linear-gradient(100deg, #f4dc94 0%, #d4af37 45%, #f7e8b4 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@utility text-gradient-blue {
+  background: linear-gradient(100deg, #0f4c81 0%, #2a6cb0 55%, #0f4c81 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@utility section-pad {
+  padding-top: 5.5rem;
+  padding-bottom: 5.5rem;
+}
+
+@keyframes floaty {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-22px) rotate(6deg);
+  }
+}
+
+@keyframes marquee-x {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-floaty {
+  animation: floaty 9s ease-in-out infinite;
+}
+
+.animate-marquee {
+  animation: marquee-x 28s linear infinite;
+}
+
+.grid-lines {
+  background-image:
+    linear-gradient(rgba(15, 76, 129, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(15, 76, 129, 0.06) 1px, transparent 1px);
+  background-size: 56px 56px;
+}
