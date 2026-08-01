@@ -7,12 +7,12 @@ import { useLanguage } from "@/i18n/LanguageContext";
 import { cn } from "@/utils/cn";
 
 export default function CampusGallery() {
-  const { t, siteData } = useLanguage();
+  const { t, cms } = useLanguage();
   const [index, setIndex] = useState<number | null>(null);
   const count = GALLERY_MEDIA.length;
 
-  /** Gallery image URLs are editable from the admin panel. */
-  const gallerySrc = (i: number) => siteData.images.gallery[i] ?? "";
+  /** Gallery image URLs from CMS — admin editable */
+  const gallerySrc = (i: number) => cms.gallery[i]?.src ?? "";
 
   const close = useCallback(() => setIndex(null), []);
   const next = useCallback(
