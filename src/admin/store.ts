@@ -243,13 +243,13 @@ export async function loadData(): Promise<AllSiteData> {
           footerDevCredit: settings?.footer_dev_credit || "",
         },
         hero: {
-          ...hero,
+          ...(hero || {}),
           marquee: marquee || [],
           badges: [hero?.badge1 || "EFA School", hero?.badge2 || "MPBSE", hero?.badge3 || "Class 1–12"],
         },
         about: {},
         principal: {
-          ...principal,
+          ...(principal || {}),
           messageP1: principal?.paragraph1 || "",
           messageP2: principal?.paragraph2 || "",
         },

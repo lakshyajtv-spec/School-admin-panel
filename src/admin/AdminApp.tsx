@@ -2,13 +2,14 @@ import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Bell, Building2, ChevronLeft, Download, ExternalLink,
-  Home, Image, LogOut, RotateCcw, Save, Settings2, Trophy,
+  Home, Image, Loader2, LogOut, RotateCcw, Save, Settings2, Trophy,
   Upload, Users, Wrench,
   type LucideIcon,
 } from "lucide-react";
 import { Logo } from "@/components/ui/Logo";
 import { cn } from "@/utils/cn";
 import { ToastProvider, useToast } from "@/admin/components/Toast";
+import { AdminErrorBoundary } from "@/admin/components/ErrorBoundary";
 import {
   authIsLoggedIn, authLogout, exportJSON, loadData,
   parseImportJSON, publishChanges, resetAllData, saveData,
@@ -43,56 +44,107 @@ const NAV: NavItem[] = [
   { id: "settings", icon: Settings2, label: "Settings" },
 ];
 
+/* ============ Spinner ============ */
+
+/** Lucide Loader2 has its own spin via animate-spin utility */
+function Spinner({ text }: { text: string }) {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-[#f0f4fa]">
+      <style>{`@keyframes gbhss-spin{to{transform:rotate(360deg)}}`}</style>
+      <div className="flex flex-col items-center gap-4">
+        <Loader2 className="h-10 w-10 animate-spin text-royal-600" />
+        <p className="font-body text-sm text-slate-500">{text}</p>
+      </div>
+    </div>
+  );
+}
+
 /* ============ Main Admin Shell ============ */
 
 function AdminPage() {
   const [page, setPage] = useState("dashboard");
   const [data, setData] = useState<AllSiteData | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [collapsed, setCollapsed] = useState(false);
   const toast = useToast();
 
-  // Async initial load
+  // Async initial load with error handling
   useEffect(() => {
-    loadData().then(setData);
+    let cancelled = false;
+    loadData()
+      .then((result) => {
+        if (!cancelled) {
+          setData(result);
+          setError(null);
+        }
+      })
+      .catch((err: Error) => {
+        if (!cancelled) {
+          console.error("[AdminPanel] loadData failed:", err);
+          setError(err.message || "Failed to load admin data");
+        }
+      });
+    return () => { cancelled = true; };
   }, []);
 
   const update = (d: AllSiteData) => {
     setData(d);
-    saveData(d);
+    saveData(d).catch((err) => console.error("[AdminPanel] saveData failed:", err));
   };
 
-  if (!data) {
+  // Error state
+  if (error) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#f0f4fa]">
-        <div className="flex flex-col items-center gap-4">
-          <div className="h-10 w-10 animate-spin rounded-full border-4 border-royal-200 border-t-royal-700" />
-          <p className="font-body text-sm text-slate-500">Loading admin panel…</p>
+      <div className="flex min-h-screen flex-col items-center justify-center gap-6 bg-[#f0f4fa] p-8 text-center">
+        <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-red-50">
+          <Bell className="h-10 w-10 text-red-400" />
         </div>
+        <div>
+          <h1 className="font-display text-xl text-royal-900">Failed to load admin panel</h1>
+          <p className="mt-2 max-w-md font-body text-sm text-slate-500">{error}</p>
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            setError(null);
+            loadData().then(setData).catch((err) => setError(err.message));
+          }}
+          className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-royal-700 to-royal-500 px-6 py-3 font-heading text-sm font-semibold text-white transition hover:-translate-y-0.5"
+        >
+          <RotateCcw className="h-4 w-4" /> Retry
+        </button>
       </div>
     );
   }
 
+  // Loading state
+  if (!data) {
+    return <Spinner text="Loading admin panel…" />;
+  }
+
   const handlePublish = () => {
-    publishChanges(data).then(() => {
-      toast("Website updated successfully! Refresh the public site to see changes.", "success");
-    });
+    publishChanges(data)
+      .then(() => toast("Website updated successfully!", "success"))
+      .catch(() => toast("Publish failed — check console", "error"));
   };
 
   const handleExport = () => { exportJSON(data); toast("Full backup downloaded", "success"); };
 
   const handleImport = () => {
     const input = document.createElement("input");
-    input.type = "file";
-    input.accept = "application/json";
+    input.type = "file"; input.accept = "application/json";
     input.onchange = () => {
       const file = input.files?.[0];
       if (!file) return;
       const reader = new FileReader();
       reader.onload = () => {
-        const parsed = parseImportJSON(String(reader.result));
-        if (parsed) { update(parsed); toast("Content imported successfully", "success"); }
-        else toast("Invalid backup file", "error");
+        try {
+          const parsed = parseImportJSON(String(reader.result));
+          if (parsed) { update(parsed); toast("Content imported successfully", "success"); }
+          else toast("Invalid backup file", "error");
+        } catch { toast("Error reading file", "error"); }
       };
+      reader.onerror = () => toast("Failed to read file", "error");
       reader.readAsText(file);
     };
     input.click();
@@ -100,9 +152,11 @@ function AdminPage() {
 
   const handleReset = () => {
     if (window.confirm("Reset ALL content to defaults? This cannot be undone.")) {
-      const fresh = resetAllData();
-      update(fresh);
-      toast("All content reset to defaults", "success");
+      try {
+        const fresh = resetAllData();
+        update(fresh);
+        toast("All content reset to defaults", "success");
+      } catch { toast("Reset failed", "error"); }
     }
   };
 
@@ -129,7 +183,6 @@ function AdminPage() {
         "fixed inset-y-0 left-0 z-40 flex flex-col border-r border-white/60 bg-royal-950 text-royal-100/80 transition-all duration-300",
         collapsed ? "w-[68px]" : "w-[230px]",
       )}>
-        {/* Brand */}
         <div className="flex items-center gap-3 border-b border-white/10 px-4 py-4">
           <button onClick={() => setCollapsed(!collapsed)} className="shrink-0 rounded-xl p-1 transition hover:bg-white/10">
             <ChevronLeft className={cn("h-5 w-5 text-gold-400 transition-transform", collapsed && "rotate-180")} />
@@ -142,7 +195,6 @@ function AdminPage() {
           )}
         </div>
 
-        {/* Nav */}
         <nav className="flex-1 space-y-0.5 overflow-y-auto p-2">
           {NAV.map((item) => (
             <button
@@ -158,13 +210,12 @@ function AdminPage() {
                 collapsed && "justify-center px-2",
               )}
             >
-              <item.icon className="h-4.5 w-4.5 shrink-0" />
+              <item.icon className="h-[18px] w-[18px] shrink-0" />
               {!collapsed && <span>{item.label}</span>}
             </button>
           ))}
         </nav>
 
-        {/* Bottom */}
         <div className="space-y-1.5 border-t border-white/10 p-2">
           <a
             href="/"
@@ -186,13 +237,14 @@ function AdminPage() {
 
       {/* Main */}
       <main className={cn("flex-1 transition-all duration-300", collapsed ? "ml-[68px]" : "ml-[230px]")}>
-        {/* Top bar */}
         <div className="sticky top-0 z-30 border-b border-white/60 bg-white/75 backdrop-blur-xl">
-          <div className="flex items-center justify-between gap-3 px-5 py-3 sm:px-6">
+          <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-3 sm:px-6">
             <div className="flex items-center gap-3">
               <Logo className="h-8 w-8" />
               <div>
-                <p className="font-display text-sm font-extrabold text-royal-800">{data.settings.schoolNameCaps}</p>
+                <p className="font-display text-sm font-extrabold text-royal-800">
+                  {data.settings.schoolNameCaps || "School Admin"}
+                </p>
                 <p className="font-heading text-[0.6rem] tracking-wider text-slate-400 uppercase">Content Management</p>
               </div>
             </div>
@@ -213,7 +265,6 @@ function AdminPage() {
           </div>
         </div>
 
-        {/* Page content */}
         <div className="p-5 sm:p-6">
           <AnimatePresence mode="wait">
             <motion.div
@@ -239,14 +290,23 @@ function AdminPage() {
 /* ============ Entry ============ */
 
 export default function AdminApp() {
-  const [loggedIn, setLoggedIn] = useState(authIsLoggedIn());
+  const [loggedIn, setLoggedIn] = useState(() => {
+    try { return authIsLoggedIn(); } catch { return false; }
+  });
+
   return (
-    <ToastProvider>
-      {loggedIn ? (
-        <AdminPage />
-      ) : (
-        <Login onSuccess={() => setLoggedIn(true)} />
-      )}
-    </ToastProvider>
+    <AdminErrorBoundary>
+      <ToastProvider>
+        {loggedIn ? (
+          <AdminPage />
+        ) : (
+          <Login
+            onSuccess={() => {
+              try { setLoggedIn(true); } catch (err) { console.error("[AdminPanel] Login callback failed:", err); }
+            }}
+          />
+        )}
+      </ToastProvider>
+    </AdminErrorBoundary>
   );
 }
