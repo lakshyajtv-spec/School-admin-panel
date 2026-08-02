@@ -1,10 +1,11 @@
 import { motion } from "framer-motion";
 import { Quote, Signature, UserRound } from "lucide-react";
 import { Reveal } from "@/components/ui/Reveal";
-import { useT } from "@/i18n/LanguageContext";
+import { useLanguage } from "@/i18n/LanguageContext";
 
 export default function PrincipalMessage() {
-  const t = useT();
+  const { t, siteData } = useLanguage();
+  const principalPhoto = siteData.settings.principalPhoto;
 
   return (
     <section
@@ -28,9 +29,18 @@ export default function PrincipalMessage() {
                 <div className="absolute -inset-3 rounded-[2rem] bg-gradient-to-tr from-royal-600/20 to-gold-300/30 blur-xl" />
                 <div className="relative overflow-hidden rounded-[2rem] border-4 border-white bg-gradient-to-br from-royal-100 via-white to-royal-50 shadow-soft">
                   <div className="flex h-[260px] items-center justify-center sm:h-[300px]">
-                    <div className="flex h-28 w-28 items-center justify-center rounded-full bg-gradient-to-br from-royal-700 to-royal-500 text-white shadow-[0_20px_40px_-18px_rgba(15,76,129,1)]">
-                      <UserRound className="h-14 w-14" />
-                    </div>
+                    {principalPhoto ? (
+                      <img
+                        src={principalPhoto}
+                        alt={t.principal.name}
+                        loading="lazy"
+                        className="h-full w-full object-cover object-top"
+                      />
+                    ) : (
+                      <div className="flex h-28 w-28 items-center justify-center rounded-full bg-gradient-to-br from-royal-700 to-royal-500 text-white shadow-[0_20px_40px_-18px_rgba(15,76,129,1)]">
+                        <UserRound className="h-14 w-14" />
+                      </div>
+                    )}
                   </div>
                   <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-royal-950/85 to-transparent p-4 pt-10">
                     <p className="font-heading text-sm font-semibold text-white">

@@ -1,4 +1,23 @@
+import { useLanguage } from "@/i18n/LanguageContext";
+
+/**
+ * School crest. If the admin has uploaded a custom logo (Website Settings),
+ * it is used everywhere (navbar, footer, admin) automatically.
+ */
 export function Logo({ className = "h-11 w-11" }: { className?: string }) {
+  const { siteData } = useLanguage();
+  const custom = siteData.settings.logo;
+
+  if (custom) {
+    return (
+      <img
+        src={custom}
+        alt="School logo"
+        className={`${className} shrink-0 rounded-2xl object-contain`}
+      />
+    );
+  }
+
   return (
     <svg viewBox="0 0 64 64" className={className} aria-hidden="true">
       <defs>
@@ -29,12 +48,7 @@ export function Logo({ className = "h-11 w-11" }: { className?: string }) {
         strokeWidth="2.6"
         strokeLinecap="round"
       />
-      <path
-        d="M46.5 24v9"
-        stroke="url(#lg-gold)"
-        strokeWidth="2.2"
-        strokeLinecap="round"
-      />
+      <path d="M46.5 24v9" stroke="url(#lg-gold)" strokeWidth="2.2" strokeLinecap="round" />
       <circle cx="46.5" cy="35" r="2.2" fill="url(#lg-gold)" />
       <path
         d="M24 47h16"

@@ -1,13 +1,37 @@
 import { motion } from "framer-motion";
-import { ArrowRight, BellRing, CalendarDays, FileText } from "lucide-react";
+import { ArrowRight, BellRing, CalendarDays, FileText, Pin } from "lucide-react";
 import { Reveal, SectionHeading } from "@/components/ui/Reveal";
-import { useT } from "@/i18n/LanguageContext";
+import { useLanguage } from "@/i18n/LanguageContext";
 import { cn } from "@/utils/cn";
 
-const accents = ["gold", "blue", "blue", "gold"] as const;
+function todayISO() {
+  return new Date().toISOString().slice(0, 10);
+}
 
 export default function NoticeBoard() {
-  const t = useT();
+  const { t, siteData } = useLanguage();
+
+  // Admin-managed notices take priority; fallback to content defaults
+  const fallback = t.notices.items.map((x, i) => ({
+    id: `fb-${i}`,
+    tag: x.tag,
+    date: x.date,
+    title: x.title,
+    body: x.body,
+    pinned: false,
+    important: false,
+    publishDate: "",
+    expiryDate: "",
+  }));
+  const now = todayISO();
+  const all = siteData.notices.length > 0 ? siteData.notices : fallback;
+  const visible = all
+    .filter(
+      (n) =>
+        (!n.publishDate || n.publishDate <= now) &&
+        (!n.expiryDate || n.expiryDate >= now),
+    )
+    .sort((a, b) => Number(b.pinned ?? false) - Number(a.pinned ?? false));
 
   return (
     <section id="notices" className="relative section-pad overflow-hidden">
@@ -21,10 +45,10 @@ export default function NoticeBoard() {
         />
 
         <div className="mt-14 grid gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-4">
-          {t.notices.items.map((n, i) => {
-            const accent = accents[i] ?? "blue";
+          {visible.map((n, i) => {
+            const accent = n.important ? "gold" : n.pinned ? "gold" : i % 2 === 0 ? "gold" : "blue";
             return (
-              <Reveal key={n.title} delay={(i % 4) * 0.07}>
+              <Reveal key={n.id} delay={(i % 4) * 0.07}>
                 <motion.div
                   whileHover={{ y: -10 }}
                   transition={{ type: "spring", stiffness: 280, damping: 20 }}
@@ -49,6 +73,7 @@ export default function NoticeBoard() {
                     >
                       <BellRing className="h-3 w-3" />
                       {n.tag}
+                      {n.pinned && <Pin className="h-3 w-3" />}
                     </span>
                     <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-50 text-slate-400 transition-colors duration-500 group-hover:bg-royal-700 group-hover:text-white">
                       <FileText className="h-4 w-4" />
