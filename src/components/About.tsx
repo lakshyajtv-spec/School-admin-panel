@@ -48,7 +48,10 @@ function Counter({
 }
 
 export default function About() {
-  const { t, lang } = useLanguage();
+  const { t, lang, cms } = useLanguage();
+
+  const aboutAImage = cms.hero?.aboutAImage || "https://images.pexels.com/photos/35550999/pexels-photo-35550999.jpeg?auto=compress&cs=tinysrgb&dpr=1&h=760&w=900";
+  const aboutBImage = cms.hero?.aboutBImage || "https://images.pexels.com/photos/2982449/pexels-photo-2982449.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=500&w=800";
 
   return (
     <section id="about" className="relative section-pad overflow-hidden">
@@ -70,7 +73,7 @@ export default function About() {
               <div className="absolute -right-5 -bottom-6 h-32 w-32 rounded-full bg-royal-100/70 blur-xl" />
               <div className="relative overflow-hidden rounded-[2.25rem] shadow-soft">
                 <img
-                  src="https://images.pexels.com/photos/35550999/pexels-photo-35550999.jpeg?auto=compress&cs=tinysrgb&dpr=1&h=760&w=900"
+                  src={aboutAImage}
                   alt={t.about.imgCaptionTitle}
                   loading="lazy"
                   decoding="async"
@@ -83,7 +86,7 @@ export default function About() {
                 className="glass absolute -right-3 -bottom-8 w-52 rounded-3xl p-4 sm:-right-8 sm:w-56"
               >
                 <img
-                  src="https://images.pexels.com/photos/2982449/pexels-photo-2982449.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=500&w=800"
+                  src={aboutBImage}
                   alt=""
                   aria-hidden="true"
                   loading="lazy"

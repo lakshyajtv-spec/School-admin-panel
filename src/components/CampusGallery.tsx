@@ -1,18 +1,38 @@
 import { useCallback, useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, Expand, X } from "lucide-react";
-import { GALLERY_MEDIA } from "@/data/site";
 import { Reveal, SectionHeading } from "@/components/ui/Reveal";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { cn } from "@/utils/cn";
 
-export default function CampusGallery() {
-  const { t, cms } = useLanguage();
-  const [index, setIndex] = useState<number | null>(null);
-  const count = GALLERY_MEDIA.length;
+/** Dynamically computes the grid span of each item to create a gorgeous masonry layout for any length */
+const getSpan = (index: number) => {
+  const spans = [
+    "md:col-span-2 md:row-span-2",
+    "",
+    "",
+    "md:col-span-2",
+    "",
+    "",
+    "",
+    "md:col-span-2"
+  ];
+  return spans[index % spans.length] || "";
+};
 
-  /** Gallery image URLs from CMS — admin editable */
-  const gallerySrc = (i: number) => cms.gallery[i]?.image_url ?? "";
+interface CustomGalleryItem {
+  id: string;
+  title: string;
+  caption: string;
+  image_url: string;
+}
+
+export default function CampusGallery() {
+  const { t } = useLanguage();
+  const [index, setIndex] = useState<number | null>(null);
+  
+  const items = (t.gallery.items || []) as unknown as CustomGalleryItem[];
+  const count = items.length;
 
   const close = useCallback(() => setIndex(null), []);
   const next = useCallback(
@@ -39,7 +59,7 @@ export default function CampusGallery() {
     };
   }, [index, close, next, prev]);
 
-  const activeText = index === null ? null : t.gallery.items[index];
+  const activeText = index === null ? null : items[index];
 
   return (
     <section
@@ -62,13 +82,13 @@ export default function CampusGallery() {
         />
 
         <div className="mt-14 grid auto-rows-[180px] grid-cols-2 gap-3 sm:auto-rows-[190px] sm:gap-4 md:auto-rows-[200px] md:grid-cols-4">
-          {GALLERY_MEDIA.map((media, i) => {
-            const text = t.gallery.items[i];
+          {items.map((text, i) => {
+            const spanClass = getSpan(i);
             return (
               <Reveal
-                key={text.title}
+                key={text.id || text.title || i}
                 delay={(i % 4) * 0.06}
-                className={cn("h-full", media.span)}
+                className={cn("h-full", spanClass)}
               >
                 <button
                   onClick={() => setIndex(i)}
@@ -76,7 +96,7 @@ export default function CampusGallery() {
                   className="group relative h-full w-full overflow-hidden rounded-[1.25rem] border border-white/10 text-left sm:rounded-[1.6rem]"
                 >
                   <img
-                    src={gallerySrc(i)}
+                    src={text.image_url}
                     alt={text.title}
                     loading="lazy"
                     decoding="async"
@@ -106,7 +126,7 @@ export default function CampusGallery() {
       </div>
 
       <AnimatePresence>
-        {activeText && (
+        {activeText && index !== null && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -155,7 +175,7 @@ export default function CampusGallery() {
               className="w-full max-w-4xl overflow-hidden rounded-[1.5rem] border border-white/15 bg-white/5 sm:rounded-[1.75rem]"
             >
               <img
-                src={gallerySrc(index ?? 0)}
+                src={activeText.image_url}
                 alt={activeText.title}
                 className="max-h-[62vh] w-full object-cover"
               />

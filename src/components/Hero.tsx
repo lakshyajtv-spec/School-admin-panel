@@ -14,14 +14,18 @@ import { IMAGES } from "@/data/site";
 const badgeIcons = [HeartHandshake, Landmark, BookOpenCheck];
 
 export default function Hero() {
-  const { t } = useLanguage();
+  const { t, cms } = useLanguage();
   const reduced = useReducedMotion();
+
+  // Dynamically resolve custom background or card images from Supabase CMS
+  const bgImage = cms.hero?.bgImage || IMAGES.hero;
+  const cardImage = cms.hero?.cardImage || IMAGES.heroCard;
 
   return (
     <section id="home" className="relative overflow-hidden">
       <div className="absolute inset-0">
         <img
-          src={IMAGES.hero}
+          src={bgImage}
           alt=""
           aria-hidden="true"
           fetchPriority="high"
@@ -68,7 +72,7 @@ export default function Hero() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
-            className="mt-6 text-[1.7rem] leading-[1.12] text-white sm:text-5xl lg:text-[3.4rem]"
+            className="mt-6 text-[1.7rem] leading-[1.1] text-white sm:text-5xl lg:text-[3.4rem]"
           >
             {t.hero.titleA}{" "}
             <span className="text-gradient-gold">{t.hero.titleHighlight}</span>{" "}
@@ -137,7 +141,7 @@ export default function Hero() {
             className="glass-dark relative overflow-hidden rounded-[2.5rem] p-3 shadow-[0_40px_80px_-30px_rgba(0,0,0,.6)]"
           >
             <img
-              src={IMAGES.heroCard}
+              src={cardImage}
               alt={t.hero.cardTitle}
               className="h-[220px] w-full rounded-[2rem] object-cover sm:h-[380px] lg:h-[440px]"
             />

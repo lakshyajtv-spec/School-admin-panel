@@ -9,21 +9,41 @@ import {
   Leaf,
   Library,
   Volleyball,
+  Cctv,
+  Wifi,
+  Book,
+  Monitor,
+  Shield,
+  type LucideIcon,
 } from "lucide-react";
 import { Reveal, SectionHeading } from "@/components/ui/Reveal";
 import { useT } from "@/i18n/LanguageContext";
 
-/** Icons align 1:1 with `content.facilities.items` */
-const icons = [
-  Cpu,
-  FlaskConical,
-  Beaker,
-  Leaf,
-  CircuitBoard,
-  Library,
-  Droplets,
-  Volleyball,
-];
+/** Resolves the correct Lucide icon dynamically from the string keyword stored in the database */
+const iconMap: Record<string, LucideIcon> = {
+  cpu: Cpu,
+  computer: Cpu,
+  flask: FlaskConical,
+  beaker: Beaker,
+  leaf: Leaf,
+  circuit: CircuitBoard,
+  library: Library,
+  droplets: Droplets,
+  volleyball: Volleyball,
+  cctv: Cctv,
+  wifi: Wifi,
+  book: Book,
+  monitor: Monitor,
+  shield: Shield,
+};
+
+interface CustomFacilityItem {
+  id: string;
+  icon: string;
+  title: string;
+  desc: string;
+  meta: string;
+}
 
 export default function Facilities() {
   const t = useT();
@@ -40,11 +60,12 @@ export default function Facilities() {
         />
 
         <div className="mt-14 grid gap-4 md:grid-cols-2">
-          {t.facilities.items.map((f, i) => {
-            const Icon = icons[i] ?? Library;
+          {t.facilities.items.map((rawF, i) => {
+            const f = rawF as unknown as CustomFacilityItem;
+            const Icon = iconMap[f.icon.toLowerCase()] ?? Library;
             return (
               <Reveal
-                key={f.title}
+                key={f.id || f.title || i}
                 delay={(i % 2) * 0.08}
                 direction={i % 2 ? "left" : "right"}
               >

@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import {
   Bell, Building2, ChevronLeft, Download, ExternalLink,
   Home, Image, LogOut, RotateCcw, Save, Settings2, Trophy,
-  Upload, Users, Wrench, type LucideIcon,
+  Upload, Users, Wrench, Layers, type LucideIcon,
 } from "lucide-react";
 import { Logo } from "@/components/ui/Logo";
 import { cn } from "@/utils/cn";
@@ -16,6 +16,7 @@ import {
 } from "@/lib/storage";
 import Login from "@/admin/pages/Login";
 import Dashboard from "@/admin/pages/Dashboard";
+import ContentPage from "@/admin/pages/ContentPage";
 import TeachersPage from "@/admin/pages/TeachersPage";
 import GalleryPage from "@/admin/pages/GalleryPage";
 import NoticesPage from "@/admin/pages/NoticesPage";
@@ -29,6 +30,7 @@ import toast from "react-hot-toast";
 interface NavItem { id: string; icon: LucideIcon; label: string; }
 const NAV: NavItem[] = [
   { id: "dashboard", icon: Home, label: "Dashboard" },
+  { id: "content", icon: Layers, label: "Homepage CMS" },
   { id: "teachers", icon: Users, label: "Teachers" },
   { id: "gallery", icon: Image, label: "Gallery" },
   { id: "notices", icon: Bell, label: "Notice Board" },
@@ -91,7 +93,7 @@ function AdminPage() {
 
   const Page = useMemo(() => {
     const map: Record<string, React.FC<{ data: SiteData; update: (d: SiteData) => void }>> = {
-      dashboard: Dashboard, teachers: TeachersPage, gallery: GalleryPage,
+      dashboard: Dashboard, content: ContentPage, teachers: TeachersPage, gallery: GalleryPage,
       notices: NoticesPage, facilities: FacilitiesPage,
       achievements: AchievementsPage, vocational: VocationalPage, settings: SettingsPage,
     };
