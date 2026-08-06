@@ -1,129 +1,258 @@
--- ============================================================
--- GOVT. BOYS H. S. SCHOOL CANTT, GUNA — Supabase Schema (v2)
--- Run once: Supabase Dashboard → SQL Editor → New query → Run
--- ============================================================
+-- ==========================================================================
+-- GOVT. BOYS H. S. SCHOOL CANTT, GUNA — Supabase Database Schema
+-- ==========================================================================
+-- Run this SQL inside the Supabase SQL Editor (https://app.supabase.com)
+-- to create all tables, storage buckets, and RLS policies.
+-- ==========================================================================
 
--- ---------- 1) site_sections ----------
--- Normalized content: one row per language (en/hi/global) per top-level
--- section (hero, about, principal, vocational, ...). No single JSON blob.
-create table if not exists public.site_sections (
-  lang       text not null check (lang in ('en', 'hi', 'global')),
-  key        text not null,
-  data       jsonb not null default '{}'::jsonb,
-  updated_at timestamptz not null default now(),
-  primary key (lang, key)
+-- ========================= ENUM TYPES ========================= 
+CREATE TYPE entity_type AS ENUM ('teachers','gallery','notices','facilities','achievements','vocational_courses');
+
+-- ========================= WEBSITE SETTINGS ========================= 
+CREATE TABLE IF NOT EXISTS website_settings (
+  id              INTEGER PRIMARY KEY CHECK (id = 1),  -- singleton row
+  school_name     TEXT NOT NULL DEFAULT 'Govt. Boys H. S. School Cantt, Guna',
+  school_name_caps TEXT NOT NULL DEFAULT 'GOVT. BOYS H. S. SCHOOL',
+  school_place    TEXT NOT NULL DEFAULT 'Cantt, Guna',
+  logo_url        TEXT NOT NULL DEFAULT '',
+  favicon         TEXT NOT NULL DEFAULT '',
+  address         TEXT NOT NULL DEFAULT 'Cantt Area, Guna, MP - 473001',
+  phone           TEXT NOT NULL DEFAULT '',
+  email           TEXT NOT NULL DEFAULT '',
+  map_embed       TEXT NOT NULL DEFAULT '',
+  footer_about    TEXT NOT NULL DEFAULT 'A government higher secondary school in Guna (M.P.) working under the EFA initiative.',
+  footer_dev_credit TEXT NOT NULL DEFAULT 'Website Designed & Developed by Lakshya Jatav',
+  updated_at      TIMESTAMPTZ DEFAULT now()
 );
-create index if not exists site_sections_lang_idx on public.site_sections (lang);
 
--- ---------- 2) site_settings ----------
--- Single row 'main' = branding/contact/socials; 'publishedAt' = last publish.
-create table if not exists public.site_settings (
-  key        text primary key,
-  data       jsonb not null default '{}'::jsonb,
-  updated_at timestamptz not null default now()
+-- seed the singleton
+INSERT INTO website_settings (id) VALUES (1) ON CONFLICT (id) DO NOTHING;
+
+-- ========================= SOCIAL LINKS ========================= 
+CREATE TABLE IF NOT EXISTS social_links (
+  id        SERIAL PRIMARY KEY,
+  platform  TEXT NOT NULL DEFAULT '',
+  url       TEXT NOT NULL DEFAULT '',
+  position  INTEGER NOT NULL DEFAULT 0
 );
 
--- ---------- 3) teachers ----------
-create table if not exists public.teachers (
-  id            text primary key,
-  name          text not null default '',
-  subject       text not null default '',
-  qualification text not null default '',
-  experience    text not null default '',
-  designation   text not null default '',
-  photo_url     text not null default '',
-  sort_order    integer not null default 0 check (sort_order >= 0),
-  created_at    timestamptz not null default now()
+-- ========================= TEACHERS ========================= 
+CREATE TABLE IF NOT EXISTS teachers (
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name            TEXT NOT NULL DEFAULT '',
+  photo           TEXT NOT NULL DEFAULT '',
+  subject         TEXT NOT NULL DEFAULT '',
+  designation     TEXT NOT NULL DEFAULT '',
+  qualification   TEXT NOT NULL DEFAULT '',
+  experience      TEXT NOT NULL DEFAULT '',
+  display_order   INTEGER NOT NULL DEFAULT 0,
+  created_at      TIMESTAMPTZ DEFAULT now(),
+  updated_at      TIMESTAMPTZ DEFAULT now()
 );
-create index if not exists teachers_sort_idx on public.teachers (sort_order);
 
--- ---------- 4) notices ----------
-create table if not exists public.notices (
-  id           text primary key,
-  tag          text not null default '',
-  date         text not null default '',
-  title        text not null default '',
-  body         text not null default '',
-  pinned       boolean not null default false,
-  important    boolean not null default false,
-  status       text not null default 'published' check (status in ('draft', 'published')),
-  publish_date text not null default '',
-  expiry_date  text not null default '',
-  created_at   timestamptz not null default now()
+-- ========================= GALLERY ========================= 
+CREATE TABLE IF NOT EXISTS gallery (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  image_url   TEXT NOT NULL DEFAULT '',
+  category    TEXT NOT NULL DEFAULT 'campus',
+  title       TEXT NOT NULL DEFAULT '',
+  caption     TEXT NOT NULL DEFAULT '',
+  display_order INTEGER NOT NULL DEFAULT 0,
+  created_at  TIMESTAMPTZ DEFAULT now()
 );
-create index if not exists notices_status_idx on public.notices (status);
-create index if not exists notices_pinned_idx on public.notices (pinned desc);
-create index if not exists notices_dates_idx on public.notices (publish_date, expiry_date);
 
--- ---------- 5) gallery ----------
-create table if not exists public.gallery (
-  id         text primary key,
-  src        text not null default '',
-  title      text not null default '',
-  caption    text not null default '',
-  category   text not null default '',
-  sort_order integer not null default 0 check (sort_order >= 0),
-  created_at timestamptz not null default now()
+-- ========================= NOTICES ========================= 
+CREATE TABLE IF NOT EXISTS notices (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tag         TEXT NOT NULL DEFAULT '',
+  notice_date TEXT NOT NULL DEFAULT '',
+  title       TEXT NOT NULL DEFAULT '',
+  body        TEXT NOT NULL DEFAULT '',
+  pinned      BOOLEAN DEFAULT false,
+  important   BOOLEAN DEFAULT false,
+  published   BOOLEAN DEFAULT true,
+  created_at  TIMESTAMPTZ DEFAULT now(),
+  updated_at  TIMESTAMPTZ DEFAULT now()
 );
-create index if not exists gallery_sort_idx on public.gallery (sort_order);
-create index if not exists gallery_category_idx on public.gallery (category);
 
--- ============================================================
--- ROW LEVEL SECURITY
--- Reads are public (the website renders for everyone).
--- Writes are open to anon for zero-setup local development.
--- PRODUCTION HARDENING (recommended):
---   * Enable Supabase Auth, then replace the write policies below with:
---     using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated')
--- ============================================================
-alter table public.site_sections enable row level security;
-alter table public.site_settings  enable row level security;
-alter table public.teachers       enable row level security;
-alter table public.notices        enable row level security;
-alter table public.gallery        enable row level security;
+-- ========================= FACILITIES ========================= 
+CREATE TABLE IF NOT EXISTS facilities (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  icon_name   TEXT NOT NULL DEFAULT '',
+  title       TEXT NOT NULL DEFAULT '',
+  description TEXT NOT NULL DEFAULT '',
+  meta_badge  TEXT NOT NULL DEFAULT '',
+  display_order INTEGER NOT NULL DEFAULT 0
+);
 
-create policy "public read site_sections" on public.site_sections for select using (true);
-create policy "public write site_sections" on public.site_sections for all using (true) with check (true);
+-- ========================= ACHIEVEMENTS ========================= 
+CREATE TABLE IF NOT EXISTS achievements (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  period      TEXT NOT NULL DEFAULT '',
+  tag         TEXT NOT NULL DEFAULT '',
+  title       TEXT NOT NULL DEFAULT '',
+  body        TEXT NOT NULL DEFAULT '',
+  display_order INTEGER NOT NULL DEFAULT 0,
+  created_at  TIMESTAMPTZ DEFAULT now()
+);
 
-create policy "public read site_settings" on public.site_settings for select using (true);
-create policy "public write site_settings" on public.site_settings for all using (true) with check (true);
+-- ========================= VOCATIONAL SECTION ========================= 
+CREATE TABLE IF NOT EXISTS vocational_section (
+  id        INTEGER PRIMARY KEY CHECK (id = 1),
+  eyebrow  TEXT NOT NULL DEFAULT 'NSQF Skill Education',
+  title    TEXT NOT NULL DEFAULT 'Vocational',
+  highlight TEXT NOT NULL DEFAULT 'Education',
+  description TEXT NOT NULL DEFAULT 'Vocational education starts from Class 9.'
+);
+INSERT INTO vocational_section (id) VALUES (1) ON CONFLICT (id) DO NOTHING;
 
-create policy "public read teachers" on public.teachers for select using (true);
-create policy "public write teachers" on public.teachers for all using (true) with check (true);
+-- ========================= VOCATIONAL COURSES ========================= 
+CREATE TABLE IF NOT EXISTS vocational_courses (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name          TEXT NOT NULL DEFAULT '',
+  tagline       TEXT NOT NULL DEFAULT '',
+  intro         TEXT NOT NULL DEFAULT '',
+  eligibility   TEXT NOT NULL DEFAULT '',
+  duration      TEXT NOT NULL DEFAULT '',
+  display_order INTEGER NOT NULL DEFAULT 0,
+  created_at    TIMESTAMPTZ DEFAULT now(),
+  updated_at    TIMESTAMPTZ DEFAULT now()
+);
 
-create policy "public read notices" on public.notices for select using (true);
-create policy "public write notices" on public.notices for all using (true) with check (true);
+-- ========================= VOCATIONAL SUBJECTS ========================= 
+CREATE TABLE IF NOT EXISTS vocational_subjects (
+  id        SERIAL PRIMARY KEY,
+  course_id UUID REFERENCES vocational_courses(id) ON DELETE CASCADE,
+  subject   TEXT NOT NULL DEFAULT ''
+);
 
-create policy "public read gallery" on public.gallery for select using (true);
-create policy "public write gallery" on public.gallery for all using (true) with check (true);
+-- ========================= VOCATIONAL CERTIFICATES ========================= 
+CREATE TABLE IF NOT EXISTS vocational_certificates (
+  id        SERIAL PRIMARY KEY,
+  course_id UUID REFERENCES vocational_courses(id) ON DELETE CASCADE,
+  certificate TEXT NOT NULL DEFAULT ''
+);
 
--- ============================================================
--- STORAGE — public 'school-images' bucket + policies
--- ============================================================
-insert into storage.buckets (id, name, public)
-values ('school-images', 'school-images', true)
-on conflict (id) do nothing;
+-- ========================= VOCATIONAL SKILLS ========================= 
+CREATE TABLE IF NOT EXISTS vocational_skills (
+  id        SERIAL PRIMARY KEY,
+  course_id UUID REFERENCES vocational_courses(id) ON DELETE CASCADE,
+  skill     TEXT NOT NULL DEFAULT ''
+);
 
-create policy "public read school-images" on storage.objects
-  for select using (bucket_id = 'school-images');
-create policy "public insert school-images" on storage.objects
-  for insert with check (bucket_id = 'school-images');
-create policy "public update school-images" on storage.objects
-  for update using (bucket_id = 'school-images');
-create policy "public delete school-images" on storage.objects
-  for delete using (bucket_id = 'school-images');
+-- ========================= VOCATIONAL CAREERS ========================= 
+CREATE TABLE IF NOT EXISTS vocational_careers (
+  id        SERIAL PRIMARY KEY,
+  course_id UUID REFERENCES vocational_courses(id) ON DELETE CASCADE,
+  career    TEXT NOT NULL DEFAULT ''
+);
 
--- ============================================================
--- SEED DATA
--- ============================================================
-insert into public.site_settings (key, data) values
-  ('main', '{"logo":"","favicon":"","themeColor":"#0F4C81","principalPhoto":"","address":"Cantt Area, Guna, Madhya Pradesh – 473001","phone":"+91 XXXXX XXXXX","email":"office@gbhss-guna.example","socialLinks":[{"label":"Website","url":""},{"label":"YouTube","url":""},{"label":"Instagram","url":""}]}'::jsonb),
-  ('publishedAt', 'null'::jsonb)
-on conflict (key) do nothing;
+-- ========================= HERO SECTION ========================= 
+CREATE TABLE IF NOT EXISTS hero_section (
+  id            INTEGER PRIMARY KEY CHECK (id = 1),
+  badge_text    TEXT NOT NULL DEFAULT 'Government of Madhya Pradesh · District Guna',
+  title_a       TEXT NOT NULL DEFAULT 'Welcome to',
+  title_highlight TEXT NOT NULL DEFAULT 'Govt. Boys H. S. School',
+  title_b       TEXT NOT NULL DEFAULT 'Cantt, Guna',
+  subtitle      TEXT NOT NULL DEFAULT '',
+  explore_btn   TEXT NOT NULL DEFAULT 'Explore Campus',
+  card_title    TEXT NOT NULL DEFAULT '',
+  card_subtitle TEXT NOT NULL DEFAULT '',
+  float_label_a TEXT NOT NULL DEFAULT 'Students',
+  float_label_b TEXT NOT NULL DEFAULT 'Vocational Trades',
+  badge1        TEXT NOT NULL DEFAULT 'EFA Government School',
+  badge2        TEXT NOT NULL DEFAULT 'MPBSE Curriculum',
+  badge3        TEXT NOT NULL DEFAULT 'Class 1 – 12',
+  bg_image_url  TEXT NOT NULL DEFAULT '',
+  card_image_url TEXT NOT NULL DEFAULT ''
+);
+INSERT INTO hero_section (id) VALUES (1) ON CONFLICT (id) DO NOTHING;
 
-insert into public.notices (id, tag, date, title, body, pinned, important, status) values
-  ('seed-notice-1', 'Latest Notice', 'Current Session', 'Parent–Teacher Meeting', 'Parents are requested to visit the school as per the notified date to discuss student progress.', false, false, 'published'),
-  ('seed-notice-2', 'Exam Schedule', 'Current Session', 'Half-Yearly & Board Exam Timetable', 'Examination timetables are displayed on the school notice board and shared with class teachers.', false, false, 'published'),
-  ('seed-notice-3', 'Holiday List', 'Current Session', 'Government Holiday Calendar', 'The school follows the holiday calendar issued by the Madhya Pradesh School Education Department.', false, false, 'published'),
-  ('seed-notice-4', 'Vocational', 'Current Session', 'Vocational Trade Selection for Class 9', 'Students entering Class 9 may choose between IT/ITES and Electronics & Hardware as their vocational trade.', true, true, 'published')
-on conflict (id) do nothing;
+-- ========================= MARQUEE ITEMS ========================= 
+CREATE TABLE IF NOT EXISTS hero_marquee (
+  id    SERIAL PRIMARY KEY,
+  text  TEXT NOT NULL DEFAULT '',
+  position INTEGER NOT NULL DEFAULT 0
+);
+
+-- ========================= PRINCIPAL ========================= 
+CREATE TABLE IF NOT EXISTS principal (
+  id            INTEGER PRIMARY KEY CHECK (id = 1),
+  name          TEXT NOT NULL DEFAULT 'Principal',
+  designation   TEXT NOT NULL DEFAULT '',
+  quote_a       TEXT NOT NULL DEFAULT '',
+  quote_b       TEXT NOT NULL DEFAULT '',
+  paragraph1    TEXT NOT NULL DEFAULT '',
+  paragraph2    TEXT NOT NULL DEFAULT '',
+  photo_url     TEXT NOT NULL DEFAULT '',
+  note          TEXT NOT NULL DEFAULT 'Name and photograph to be updated by school office'
+);
+INSERT INTO principal (id) VALUES (1) ON CONFLICT (id) DO NOTHING;
+
+-- ========================= STORAGE BUCKET ========================= 
+-- Run this separately via Supabase Dashboard → Storage
+-- Create a bucket named 'school-media' with public access
+-- INSERT INTO storage.buckets (id, name, public) VALUES ('school-media','school-media',true);
+
+-- ========================= RLS POLICIES ========================= 
+-- Enable RLS on all tables and allow public read + authenticated write
+ALTER TABLE website_settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE social_links ENABLE ROW LEVEL SECURITY;
+ALTER TABLE teachers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE gallery ENABLE ROW LEVEL SECURITY;
+ALTER TABLE notices ENABLE ROW LEVEL SECURITY;
+ALTER TABLE facilities ENABLE ROW LEVEL SECURITY;
+ALTER TABLE achievements ENABLE ROW LEVEL SECURITY;
+ALTER TABLE vocational_section ENABLE ROW LEVEL SECURITY;
+ALTER TABLE vocational_courses ENABLE ROW LEVEL SECURITY;
+ALTER TABLE vocational_subjects ENABLE ROW LEVEL SECURITY;
+ALTER TABLE vocational_certificates ENABLE ROW LEVEL SECURITY;
+ALTER TABLE vocational_skills ENABLE ROW LEVEL SECURITY;
+ALTER TABLE vocational_careers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE hero_section ENABLE ROW LEVEL SECURITY;
+ALTER TABLE hero_marquee ENABLE ROW LEVEL SECURITY;
+ALTER TABLE principal ENABLE ROW LEVEL SECURITY;
+
+-- ======== READ policies (anon can read everything) ========
+DO $$
+DECLARE
+  tbl TEXT;
+BEGIN
+  FOR tbl IN 
+    SELECT unnest(ARRAY[
+      'website_settings','social_links','teachers','gallery','notices',
+      'facilities','achievements','vocational_section','vocational_courses',
+      'vocational_subjects','vocational_certificates','vocational_skills',
+      'vocational_careers','hero_section','hero_marquee','principal'
+    ])
+  LOOP
+    EXECUTE format('CREATE POLICY "anon_read_%s" ON %I FOR SELECT USING (true)', tbl, tbl);
+  END LOOP;
+END;
+$$;
+
+-- ======== WRITE policies (anon can insert/update/delete — adjustable later) ========
+DO $$
+DECLARE
+  tbl TEXT;
+BEGIN
+  FOR tbl IN 
+    SELECT unnest(ARRAY[
+      'website_settings','social_links','teachers','gallery','notices',
+      'facilities','achievements','vocational_section','vocational_courses',
+      'vocational_subjects','vocational_certificates','vocational_skills',
+      'vocational_careers','hero_section','hero_marquee','principal'
+    ])
+  LOOP
+    EXECUTE format('CREATE POLICY "anon_insert_%s" ON %I FOR INSERT WITH CHECK (true)', tbl, tbl);
+    EXECUTE format('CREATE POLICY "anon_update_%s" ON %I FOR UPDATE USING (true)', tbl, tbl);
+    EXECUTE format('CREATE POLICY "anon_delete_%s" ON %I FOR DELETE USING (true)', tbl, tbl);
+  END LOOP;
+END;
+$$;
+
+-- ===== STORAGE POLICY =====
+-- (Run separately in Storage → Policies)
+-- CREATE POLICY "public_read_school_media" ON storage.objects FOR SELECT USING (bucket_id='school-media');
+-- CREATE POLICY "anon_insert_school_media" ON storage.objects FOR INSERT WITH CHECK (bucket_id='school-media');
+-- CREATE POLICY "anon_delete_school_media" ON storage.objects FOR DELETE USING (bucket_id='school-media');

@@ -1,8 +1,7 @@
-/**
- * Admin panel configuration.
- * Change the password here (or from Admin Settings → Change Password,
- * which stores an override in this browser).
- */
 export const ADMIN_PASSWORD = "Lakshya@123";
 export const ADMIN_ROUTE = "#/lakshya-admin";
-export const ADMIN_NAME = "Admin";
+export const STORAGE_PREFIX = "gbhss";
+export const STORAGE_KEYS = {
+  auth: `${STORAGE_PREFIX}-auth`,
+  data: `${STORAGE_PREFIX}-data-v3`,
+} as const;
