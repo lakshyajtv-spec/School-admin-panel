@@ -1,5 +1,5 @@
 export const ADMIN_PASSWORD = "Lakshya@123";
-export const ADMIN_ROUTE = "#/lakshya-admin";
+export const ADMIN_ROUTE = "#/admin-lakshya";
 export const STORAGE_PREFIX = "gbhss";
 export const STORAGE_KEYS = {
   auth: `${STORAGE_PREFIX}-auth`,

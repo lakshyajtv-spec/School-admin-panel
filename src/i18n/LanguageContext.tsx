@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { en, hi, type Content, type Lang } from "@/i18n/content";
-import { loadSiteData, fetchFromSupabase, type SiteData } from "@/lib/storage";
+import { loadSiteData, fetchFromAppwrite, type SiteData } from "@/lib/storage";
 
 type LanguageValue = {
   lang: Lang;
@@ -22,8 +22,8 @@ function readLang(): Lang {
 }
 
 /**
- * Merges Supabase CMS records directly into the English/Hindi translation tree
- * at runtime. This connects every single public frontend component to the Supabase
+ * Merges Appwrite CMS records directly into the English/Hindi translation tree
+ * at runtime. This connects every single public frontend component to the Appwrite
  * database dynamically, while keeping localization perfectly intact.
  */
 function mergeContent(lang: Lang, cms: SiteData): Content {
@@ -175,12 +175,12 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     setT(mergeContent(lang, loadSiteData()));
   }, [lang]);
 
-  // Load fresh content from Supabase database on mount
+  // Load fresh content from Appwrite database on mount
   useEffect(() => {
-    fetchFromSupabase().then((supabaseData) => {
-      if (supabaseData) {
-        setCMS(supabaseData);
-        setT(mergeContent(lang, supabaseData));
+    fetchFromAppwrite().then((freshData: SiteData | null) => {
+      if (freshData) {
+        setCMS(freshData);
+        setT(mergeContent(lang, freshData));
       }
     });
   }, [lang]);

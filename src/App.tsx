@@ -17,7 +17,7 @@ import { LanguageProvider } from "@/i18n/LanguageContext";
 
 /**
  * Tiny hash router:
- *   #/lakshya-admin  → Admin panel
+ *   #/admin-lakshya  → Admin panel
  *   anything else (or empty) → public website
  */
 function useHashRoute() {
@@ -68,7 +68,7 @@ export default function App() {
 
   return (
     <LanguageProvider>
-      {hash.startsWith("#/lakshya-admin") ? <AdminApp /> : <PublicSite />}
+      {hash.startsWith("#/admin-lakshya") ? <AdminApp /> : <PublicSite />}
     </LanguageProvider>
   );
 }

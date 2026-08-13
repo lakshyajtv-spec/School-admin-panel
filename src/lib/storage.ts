@@ -1,8 +1,14 @@
-/** localStorage + Supabase unified data adapter — always returns valid data, never throws. */
+/** 
+ * localStorage + Appwrite unified data adapter — always returns valid data, never throws.
+ * Appwrite Cloud is the single source of truth for the production deployment.
+ */
 import { STORAGE_KEYS } from "@/config/admin";
-import { supabase, isSupabaseReady } from "@/lib/supabase";
+import { databases, storage, account, isAppwriteReady, APPWRITE_CONFIG } from "@/lib/appwrite";
+import { ID } from "appwrite";
 
-const BUCKET = "school-media";
+const BUCKET_ID = APPWRITE_CONFIG.bucketId;
+const DATABASE_ID = APPWRITE_CONFIG.databaseId;
+const COLLECTION_ID = "website_content"; // Single collection storing all unified CMS documents
 
 /* ---------- Generic JSON helpers ---------- */
 function lsGet<T>(key: string, fallback: T): T {
@@ -273,238 +279,116 @@ export function importJSON(text: string): SiteData | null {
   }
 }
 
-/* ---------- Auth ---------- */
+/* ---------- Auth (Appwrite Cloud based) ---------- */
 import { ADMIN_PASSWORD } from "@/config/admin";
 
 let runtimePassword = ADMIN_PASSWORD;
 
 export function getPassword() { return runtimePassword; }
 export function setPassword(p: string) { if (p.trim().length >= 4) { runtimePassword = p.trim(); authLogout(); } }
-export function authLogin(pass: string) {
-  if (pass === getPassword()) { lsSet(STORAGE_KEYS.auth, "1"); return true; }
+
+/** Logs in using Appwrite Auth Session or localStorage fallback if Appwrite is not configured */
+export async function authLogin(email: string, pass: string): Promise<boolean> {
+  if (isAppwriteReady()) {
+    try {
+      // Clear previous session if any
+      try { await account.deleteSession("current"); } catch { /* */ }
+      await account.createEmailPasswordSession(email, pass);
+      lsSet(STORAGE_KEYS.auth, "1");
+      return true;
+    } catch (error: any) {
+      console.error("[Auth] Appwrite login failed:", error.message || error);
+      throw new Error(error.message || "Authentication failed. Check credentials.");
+    }
+  }
+
+  // Fallback mode: standard password check
+  if (pass === getPassword()) {
+    lsSet(STORAGE_KEYS.auth, "1");
+    return true;
+  }
   return false;
 }
-export function authLogout() { lsSet(STORAGE_KEYS.auth, ""); }
-export function authIsLoggedIn() { return lsGet<string>(STORAGE_KEYS.auth, "") === "1"; }
 
-/* ---------- Image upload (Supabase Storage, falls back to passthrough URL) ---------- */
-export async function uploadImage(file: File, folder: string): Promise<string> {
-  if (!isSupabaseReady()) return URL.createObjectURL(file);
-  const path = `${folder}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
-  const { error } = await supabase.storage.from(BUCKET).upload(path, file, { upsert: true });
-  if (error) throw new Error(error.message);
-  const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
-  return data.publicUrl;
+/** Logs out and destroys the Appwrite session */
+export async function authLogout(): Promise<void> {
+  if (isAppwriteReady()) {
+    try {
+      await account.deleteSession("current");
+    } catch { /* */ }
+  }
+  lsSet(STORAGE_KEYS.auth, "");
+}
+
+export function authIsLoggedIn(): boolean {
+  return lsGet<string>(STORAGE_KEYS.auth, "") === "1";
+}
+
+/* ---------- Image upload (Appwrite Storage, falls back to passthrough URL) ---------- */
+export async function uploadImage(file: File, _folder: string): Promise<string> {
+  if (!isAppwriteReady()) return URL.createObjectURL(file);
+  try {
+    const response = await storage.createFile(BUCKET_ID, ID.unique(), file);
+    // Retrieve public view URL
+    const fileUrl = `${APPWRITE_CONFIG.endpoint}/storage/buckets/${BUCKET_ID}/files/${response.$id}/view?project=${APPWRITE_CONFIG.projectId}`;
+    return fileUrl;
+  } catch (error: any) {
+    console.error("[Storage] Upload failed:", error);
+    throw new Error(error.message || "File upload failed.");
+  }
 }
 
 export async function deleteImage(url: string) {
-  if (!isSupabaseReady()) return;
+  if (!isAppwriteReady()) return;
   try {
-    const path = url.split(`/${BUCKET}/`)[1];
-    if (path) await supabase.storage.from(BUCKET).remove([path]);
+    // Extract file ID from view URL
+    const fileId = url.split("/files/")[1]?.split("/")[0];
+    if (fileId) await storage.deleteFile(BUCKET_ID, fileId);
   } catch { /* */ }
 }
 
 /* ==========================================================================
-   SUPABASE CMS NORMALIZED RELATIONAL DATABASE INTEGRATION LAYER
+   APPWRITE CMS UNIFIED DOCUMENT INTEGRATION LAYER
    ========================================================================== */
 
-/** Asynchronously fetches and compiles completely fresh website content from Supabase */
-export async function fetchFromSupabase(): Promise<SiteData | null> {
-  if (!isSupabaseReady()) {
-    console.log("[CMS Storage] Supabase not configured. Using high-performance localStorage fallback.");
+/** Asynchronously fetches and compiles completely fresh website content from Appwrite */
+export async function fetchFromAppwrite(): Promise<SiteData | null> {
+  if (!isAppwriteReady()) {
+    console.log("[CMS Storage] Appwrite not configured. Using high-performance localStorage fallback.");
     return null;
   }
 
   try {
-    const [
-      settingsRes, socialRes, teachersRes, galleryRes, noticesRes,
-      facilitiesRes, achievementsRes, vocSectionRes, vocCoursesRes,
-      vocSubjectsRes, vocCertificatesRes, vocSkillsRes, vocCareersRes,
-      heroRes, marqueeRes, principalRes
-    ] = await Promise.all([
-      supabase.from("website_settings").select("*").eq("id", 1).maybeSingle(),
-      supabase.from("social_links").select("*").order("position", { ascending: true }),
-      supabase.from("teachers").select("*").order("display_order", { ascending: true }),
-      supabase.from("gallery").select("*").order("display_order", { ascending: true }),
-      supabase.from("notices").select("*").order("created_at", { ascending: false }),
-      supabase.from("facilities").select("*").order("display_order", { ascending: true }),
-      supabase.from("achievements").select("*").order("display_order", { ascending: true }),
-      supabase.from("vocational_section").select("*").eq("id", 1).maybeSingle(),
-      supabase.from("vocational_courses").select("*").order("display_order", { ascending: true }),
-      supabase.from("vocational_subjects").select("*"),
-      supabase.from("vocational_certificates").select("*"),
-      supabase.from("vocational_skills").select("*"),
-      supabase.from("vocational_careers").select("*"),
-      supabase.from("hero_section").select("*").eq("id", 1).maybeSingle(),
-      supabase.from("hero_marquee").select("*").order("position", { ascending: true }),
-      supabase.from("principal").select("*").eq("id", 1).maybeSingle(),
-    ]);
-
-    // Handle any fetch errors gracefully without breaking the UI
-    const defaultData = defaultsSiteData();
-
-    // 1. Map Website Settings & Social Links
-    const settingsData = settingsRes.data;
-    const socialLinks = (socialRes.data || []).map(link => ({ platform: link.platform, url: link.url }));
-    const settings: SiteSettings = {
-      schoolName: settingsData?.school_name || defaultData.settings.schoolName,
-      schoolNameCaps: settingsData?.school_name_caps || defaultData.settings.schoolNameCaps,
-      schoolPlace: settingsData?.school_place || defaultData.settings.schoolPlace,
-      logoUrl: settingsData?.logo_url || defaultData.settings.logoUrl,
-      address: settingsData?.address || defaultData.settings.address,
-      phone: settingsData?.phone || defaultData.settings.phone,
-      email: settingsData?.email || defaultData.settings.email,
-      map: settingsData?.map_embed || defaultData.settings.map,
-      footerAbout: settingsData?.footer_about || defaultData.settings.footerAbout,
-      footerDevCredit: settingsData?.footer_dev_credit || defaultData.settings.footerDevCredit,
-      socialLinks,
-    };
-
-    // 2. Map Hero Section & Marquee
-    const heroData = heroRes.data;
-    const marquee = (marqueeRes.data || []).map(item => item.text);
-    const hero = {
-      badge: heroData?.badge_text || defaultData.hero.badge,
-      titleA: heroData?.title_a || defaultData.hero.titleA,
-      titleHighlight: heroData?.title_highlight || defaultData.hero.titleHighlight,
-      titleB: heroData?.title_b || defaultData.hero.titleB,
-      subtitle: heroData?.subtitle || defaultData.hero.subtitle,
-      exploreBtn: heroData?.explore_btn || defaultData.hero.exploreBtn,
-      cardTitle: heroData?.card_title || defaultData.hero.cardTitle,
-      cardSub: heroData?.card_subtitle || defaultData.hero.cardSub,
-      floatA: heroData?.float_label_a || defaultData.hero.floatA,
-      floatB: heroData?.float_label_b || defaultData.hero.floatB,
-      badges: [
-        heroData?.badge1 || defaultData.hero.badges[0],
-        heroData?.badge2 || defaultData.hero.badges[1],
-        heroData?.badge3 || defaultData.hero.badges[2],
-      ],
-      marquee: marquee.length > 0 ? marquee : defaultData.hero.marquee,
-      bgImage: heroData?.bg_image_url || defaultData.hero.bgImage,
-      cardImage: heroData?.card_image_url || defaultData.hero.cardImage,
-      aboutAImage: "",
-      aboutBImage: "",
-    };
-
-    // 3. Map Principal Message
-    const principalData = principalRes.data;
-    const principal = {
-      name: principalData?.name || defaultData.principal.name,
-      designation: principalData?.designation || defaultData.principal.designation,
-      quoteA: principalData?.quote_a || defaultData.principal.quoteA,
-      quoteB: principalData?.quote_b || defaultData.principal.quoteB,
-      p1: principalData?.paragraph1 || defaultData.principal.p1,
-      p2: principalData?.paragraph2 || defaultData.principal.p2,
-      photoUrl: principalData?.photo_url || defaultData.principal.photoUrl,
-      note: principalData?.note || defaultData.principal.note,
-    };
-
-    // 4. Map Teachers
-    const teachers: Teacher[] = (teachersRes.data || []).map(t => ({
-      id: t.id,
-      name: t.name,
-      photo: t.photo,
-      subject: t.subject,
-      designation: t.designation,
-      qualification: t.qualification,
-      experience: t.experience,
-      order: t.display_order,
-    }));
-
-    // 5. Map Gallery
-    const gallery: GalleryItem[] = (galleryRes.data || []).map(g => ({
-      id: g.id,
-      image_url: g.image_url,
-      category: g.category || "campus",
-      title: g.title,
-      caption: g.caption,
-      order: g.display_order,
-    }));
-
-    // 6. Map Notices
-    const notices: Notice[] = (noticesRes.data || []).map(n => ({
-      id: n.id,
-      tag: n.tag,
-      date: n.notice_date,
-      title: n.title,
-      body: n.body,
-      pinned: n.pinned || false,
-      important: n.important || false,
-      published: n.published || false,
-    }));
-
-    // 7. Map Facilities
-    const facilities: Facility[] = (facilitiesRes.data || []).map(f => ({
-      id: f.id,
-      icon: f.icon_name,
-      title: f.title,
-      desc: f.description,
-      meta: f.meta_badge,
-    }));
-
-    // 8. Map Achievements
-    const achievements: Achievement[] = (achievementsRes.data || []).map(a => ({
-      id: a.id,
-      period: a.period,
-      tag: a.tag,
-      title: a.title,
-      body: a.body,
-    }));
-
-    // 9. Map Vocational Education Section
-    const vocSection = vocSectionRes.data;
-    const courses: VocCourse[] = (vocCoursesRes.data || []).map(course => {
-      const courseId = course.id;
-      return {
-        id: courseId,
-        name: course.name,
-        tagline: course.tagline,
-        intro: course.intro,
-        eligibility: course.eligibility,
-        duration: course.duration,
-        subjects: (vocSubjectsRes.data || []).filter(r => r.course_id === courseId).map(r => r.subject),
-        certificates: (vocCertificatesRes.data || []).filter(r => r.course_id === courseId).map(r => r.certificate),
-        skills: (vocSkillsRes.data || []).filter(r => r.course_id === courseId).map(r => r.skill),
-        careers: (vocCareersRes.data || []).filter(r => r.course_id === courseId).map(r => r.career),
-      };
-    });
-
-    const vocational = {
-      eyebrow: vocSection?.eyebrow || defaultData.vocational.eyebrow,
-      title: vocSection?.title || defaultData.vocational.title,
-      highlight: vocSection?.highlight || defaultData.vocational.highlight,
-      desc: vocSection?.description || defaultData.vocational.desc,
-      courses,
-    };
-
-    const parsedSiteData: SiteData = {
-      settings,
-      hero,
-      about: {},
-      principal,
-      teachers: teachers.length > 0 ? teachers : defaultData.teachers,
-      gallery: gallery.length > 0 ? gallery : defaultData.gallery,
-      notices: notices.length > 0 ? notices : defaultData.notices,
-      facilities: facilities.length > 0 ? facilities : defaultData.facilities,
-      achievements: achievements.length > 0 ? achievements : defaultData.achievements,
-      vocational,
-      highlights: defaultData.highlights,
-    };
-
-    // Cache to localStorage for instant startup on next page refresh
-    lsSet(STORAGE_KEYS.data, parsedSiteData);
-    return parsedSiteData;
-  } catch (error) {
-    console.error("[CMS Storage] Supabase load failed. Gracefully falling back to local cached copy:", error);
+    const documentId = "master_cms_data";
+    const doc = await databases.getDocument(DATABASE_ID, COLLECTION_ID, documentId);
+    if (doc && doc.data) {
+      const parsedSiteData = JSON.parse(doc.data) as SiteData;
+      // Cache locally for instant startup
+      lsSet(STORAGE_KEYS.data, parsedSiteData);
+      return parsedSiteData;
+    }
+    return null;
+  } catch (error: any) {
+    // If document doesn't exist yet, we attempt to initialize it with defaults
+    if (error.code === 404) {
+      console.log("[CMS Storage] Document not found. Initializing master document on first-time load...");
+      const fresh = defaultsSiteData();
+      try {
+        await databases.createDocument(DATABASE_ID, COLLECTION_ID, "master_cms_data", { data: JSON.stringify(fresh) });
+        return fresh;
+      } catch (createErr) {
+        console.warn("[CMS Storage] Auto-initialization skipped (check Collection attributes/permissions):", createErr);
+      }
+    }
+    console.error("[CMS Storage] Appwrite database load failed. Falling back to local cached copy:", error);
     return null;
   }
 }
 
-/** Publishes website changes immediately to normalized Supabase database tables */
-export async function publishToSupabase(d: SiteData): Promise<void> {
-  if (!isSupabaseReady()) {
-    console.warn("[CMS Storage] Supabase NOT ready or unconfigured. Skipping remote sync.");
+/** Publishes website changes immediately to the unified Appwrite document */
+export async function publishToAppwrite(d: SiteData): Promise<void> {
+  if (!isAppwriteReady()) {
+    console.warn("[CMS Storage] Appwrite NOT ready or unconfigured. Skipping remote sync.");
     return;
   }
 
@@ -512,201 +396,26 @@ export async function publishToSupabase(d: SiteData): Promise<void> {
   saveSiteData(d);
 
   try {
-    // 1. Publish Website Settings (Singleton ID = 1)
-    await supabase.from("website_settings").upsert({
-      id: 1,
-      school_name: d.settings.schoolName,
-      school_name_caps: d.settings.schoolNameCaps,
-      school_place: d.settings.schoolPlace,
-      logo_url: d.settings.logoUrl,
-      address: d.settings.address,
-      phone: d.settings.phone,
-      email: d.settings.email,
-      map_embed: d.settings.map,
-      footer_about: d.settings.footerAbout,
-      footer_dev_credit: d.settings.footerDevCredit,
-    });
+    const documentId = "master_cms_data";
+    // Check if exists
+    let exists = false;
+    try {
+      await databases.getDocument(DATABASE_ID, COLLECTION_ID, documentId);
+      exists = true;
+    } catch { /* */ }
 
-    // 2. Publish Social Links
-    await supabase.from("social_links").delete().neq("id", 0);
-    if (d.settings.socialLinks && d.settings.socialLinks.length > 0) {
-      const socialPayload = d.settings.socialLinks.map((item, index) => ({
-        platform: item.platform,
-        url: item.url,
-        position: index,
-      }));
-      await supabase.from("social_links").insert(socialPayload);
+    if (exists) {
+      await databases.updateDocument(DATABASE_ID, COLLECTION_ID, documentId, {
+        data: JSON.stringify(d)
+      });
+    } else {
+      await databases.createDocument(DATABASE_ID, COLLECTION_ID, documentId, {
+        data: JSON.stringify(d)
+      });
     }
-
-    // 3. Publish Hero Section
-    await supabase.from("hero_section").upsert({
-      id: 1,
-      badge_text: d.hero.badge,
-      title_a: d.hero.titleA,
-      title_highlight: d.hero.titleHighlight,
-      title_b: d.hero.titleB,
-      subtitle: d.hero.subtitle,
-      explore_btn: d.hero.exploreBtn,
-      card_title: d.hero.cardTitle,
-      card_subtitle: d.hero.cardSub,
-      float_label_a: d.hero.floatA,
-      float_label_b: d.hero.floatB,
-      badge1: d.hero.badges[0] || "",
-      badge2: d.hero.badges[1] || "",
-      badge3: d.hero.badges[2] || "",
-      bg_image_url: d.hero.bgImage,
-      card_image_url: d.hero.cardImage,
-    });
-
-    // 4. Publish Hero Marquee Strip Items
-    await supabase.from("hero_marquee").delete().neq("id", 0);
-    if (d.hero.marquee && d.hero.marquee.length > 0) {
-      const marqueePayload = d.hero.marquee.map((text, index) => ({
-        text,
-        position: index,
-      }));
-      await supabase.from("hero_marquee").insert(marqueePayload);
-    }
-
-    // 5. Publish Principal Message (Singleton ID = 1)
-    await supabase.from("principal").upsert({
-      id: 1,
-      name: d.principal.name,
-      designation: d.principal.designation,
-      quote_a: d.principal.quoteA,
-      quote_b: d.principal.quoteB,
-      paragraph1: d.principal.p1,
-      paragraph2: d.principal.p2,
-      photo_url: d.principal.photoUrl,
-      note: d.principal.note,
-    });
-
-    // 6. Publish Teachers
-    // Clean deleted records or do total sync:
-    // For robust relational synchronization without complex diffing, delete existing then rewrite
-    await supabase.from("teachers").delete().neq("name", "###FORCE_DELETE_SAFE###");
-    if (d.teachers && d.teachers.length > 0) {
-      const teachersPayload = d.teachers.map((t, index) => ({
-        id: t.id.startsWith("t") ? undefined : t.id, // generate UUID if temporary ID
-        name: t.name,
-        photo: t.photo,
-        subject: t.subject,
-        designation: t.designation,
-        qualification: t.qualification,
-        experience: t.experience,
-        display_order: index,
-      }));
-      await supabase.from("teachers").insert(teachersPayload);
-    }
-
-    // 7. Publish Gallery
-    await supabase.from("gallery").delete().neq("category", "###FORCE_DELETE_SAFE###");
-    if (d.gallery && d.gallery.length > 0) {
-      const galleryPayload = d.gallery.map((g, index) => ({
-        id: g.id.startsWith("g") ? undefined : g.id,
-        image_url: g.image_url,
-        category: g.category || "campus",
-        title: g.title,
-        caption: g.caption,
-        display_order: index,
-      }));
-      await supabase.from("gallery").insert(galleryPayload);
-    }
-
-    // 8. Publish Notices
-    await supabase.from("notices").delete().neq("title", "###FORCE_DELETE_SAFE###");
-    if (d.notices && d.notices.length > 0) {
-      const noticesPayload = d.notices.map((n) => ({
-        id: n.id.startsWith("n") ? undefined : n.id,
-        tag: n.tag,
-        notice_date: n.date,
-        title: n.title,
-        body: n.body,
-        pinned: n.pinned,
-        important: n.important,
-        published: n.published,
-      }));
-      await supabase.from("notices").insert(noticesPayload);
-    }
-
-    // 9. Publish Facilities
-    await supabase.from("facilities").delete().neq("title", "###FORCE_DELETE_SAFE###");
-    if (d.facilities && d.facilities.length > 0) {
-      const facilitiesPayload = d.facilities.map((f, index) => ({
-        id: f.id.startsWith("f") ? undefined : f.id,
-        icon_name: f.icon,
-        title: f.title,
-        description: f.desc,
-        meta_badge: f.meta,
-        display_order: index,
-      }));
-      await supabase.from("facilities").insert(facilitiesPayload);
-    }
-
-    // 10. Publish Achievements
-    await supabase.from("achievements").delete().neq("title", "###FORCE_DELETE_SAFE###");
-    if (d.achievements && d.achievements.length > 0) {
-      const achievementsPayload = d.achievements.map((a, index) => ({
-        id: a.id.startsWith("a") ? undefined : a.id,
-        period: a.period,
-        tag: a.tag,
-        title: a.title,
-        body: a.body,
-        display_order: index,
-      }));
-      await supabase.from("achievements").insert(achievementsPayload);
-    }
-
-    // 11. Publish Vocational Section (Singleton ID = 1)
-    await supabase.from("vocational_section").upsert({
-      id: 1,
-      eyebrow: d.vocational.eyebrow,
-      title: d.vocational.title,
-      highlight: d.vocational.highlight,
-      description: d.vocational.desc,
-    });
-
-    // 12. Publish Vocational Courses & Related Child Arrays
-    await supabase.from("vocational_courses").delete().neq("name", "###FORCE_DELETE_SAFE###");
-    if (d.vocational.courses && d.vocational.courses.length > 0) {
-      for (let index = 0; index < d.vocational.courses.length; index++) {
-        const c = d.vocational.courses[index];
-        const cid = c.id.startsWith("v") ? undefined : c.id;
-
-        // Insert course
-        const { data: insertedCourse } = await supabase.from("vocational_courses").insert({
-          id: cid,
-          name: c.name,
-          tagline: c.tagline,
-          intro: c.intro,
-          eligibility: c.eligibility,
-          duration: c.duration,
-          display_order: index,
-        }).select().single();
-
-        if (insertedCourse) {
-          const courseUUID = insertedCourse.id;
-
-          // Insert nested relational records
-          if (c.subjects && c.subjects.length > 0) {
-            await supabase.from("vocational_subjects").insert(c.subjects.map(subject => ({ course_id: courseUUID, subject })));
-          }
-          if (c.certificates && c.certificates.length > 0) {
-            await supabase.from("vocational_certificates").insert(c.certificates.map(certificate => ({ course_id: courseUUID, certificate })));
-          }
-          if (c.skills && c.skills.length > 0) {
-            await supabase.from("vocational_skills").insert(c.skills.map(skill => ({ course_id: courseUUID, skill })));
-          }
-          if (c.careers && c.careers.length > 0) {
-            await supabase.from("vocational_careers").insert(c.careers.map(career => ({ course_id: courseUUID, career })));
-          }
-        }
-      }
-    }
-
-    console.log("[CMS Storage] Successfully published all normalized data to Supabase PostgreSQL.");
-  } catch (error) {
-    console.error("[CMS Storage] Failed to publish changes to Supabase:", error);
-    throw error;
+    console.log("[CMS Storage] Successfully published unified data to Appwrite Cloud.");
+  } catch (error: any) {
+    console.error("[CMS Storage] Failed to publish changes to Appwrite:", error);
+    throw new Error(error.message || "Appwrite publication failed. Check collection permissions or configuration.");
   }
 }

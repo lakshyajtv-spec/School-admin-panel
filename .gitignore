@@ -1,5 +1,6 @@
 # dotenv environment variables
 .env
+.env.setup
 .env.local
 .env.*.local
 

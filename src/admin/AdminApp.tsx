@@ -11,7 +11,7 @@ import { Button } from "@/admin/components/ui/Button";
 import { Toaster } from "react-hot-toast";
 import {
   authIsLoggedIn, authLogout, exportJSON, importJSON,
-  loadSiteData, resetSiteData, saveSiteData, publishToSupabase,
+  loadSiteData, resetSiteData, saveSiteData, publishToAppwrite,
   type SiteData,
 } from "@/lib/storage";
 import Login from "@/admin/pages/Login";
@@ -74,10 +74,10 @@ function AdminPage() {
 
   const handlePublish = async () => {
     setPublishing(true);
-    const publishPromise = publishToSupabase(data);
+    const publishPromise = publishToAppwrite(data);
     
     toast.promise(publishPromise, {
-      loading: "Publishing changes to Supabase...",
+      loading: "Publishing changes to Appwrite Cloud...",
       success: "Website published and updated successfully!",
       error: (err) => `Publish failed: ${err.message || err}`,
     });
@@ -120,7 +120,7 @@ function AdminPage() {
         <div className="space-y-1.5 border-t border-white/10 p-2">
           <a href="/" onClick={(e) => { e.preventDefault(); window.location.hash = ""; }}
             className="flex items-center gap-2 rounded-xl px-3 py-2.5 font-heading text-[0.75rem] font-semibold text-white hover:bg-white/10"><ExternalLink className="h-4 w-4 text-gold-400" />{!collapsed && "View Website"}</a>
-          <button onClick={() => { authLogout(); window.location.hash = "/lakshya-admin"; window.location.reload(); }}
+          <button onClick={() => { authLogout(); window.location.hash = "/admin-lakshya"; window.location.reload(); }}
             className="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 font-heading text-[0.75rem] font-semibold text-royal-100/70 hover:bg-white/5"><LogOut className="h-4 w-4" />{!collapsed && "Logout"}</button>
         </div>
       </aside>

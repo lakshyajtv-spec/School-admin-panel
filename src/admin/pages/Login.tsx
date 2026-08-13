@@ -3,20 +3,34 @@ import { Eye, EyeOff, Loader2, ShieldCheck } from "lucide-react";
 import { useState } from "react";
 import { Logo } from "@/components/ui/Logo";
 import { authLogin } from "@/lib/storage";
+import { isAppwriteReady } from "@/lib/appwrite";
+import toast from "react-hot-toast";
 
 export default function Login({ onSuccess }: { onSuccess: () => void }) {
+  const [email, setEmail] = useState("");
   const [pass, setPass] = useState("");
   const [show, setShow] = useState(false);
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const submit = (e: React.FormEvent) => {
+  const isCloud = isAppwriteReady();
+
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setTimeout(() => {
-      if (authLogin(pass)) onSuccess();
-      else { setError(true); setLoading(false); }
-    }, 500);
+    try {
+      const success = await authLogin(isCloud ? email : "admin@fallback.local", pass);
+      if (success) {
+        toast.success("Welcome back!");
+        onSuccess();
+      } else {
+        setError(true);
+        setLoading(false);
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Invalid credentials.");
+      setLoading(false);
+    }
   };
 
   return (
@@ -38,14 +52,33 @@ export default function Login({ onSuccess }: { onSuccess: () => void }) {
           </div>
           <p className="font-display text-lg font-extrabold text-white">GOVT. BOYS H. S. SCHOOL</p>
           <p className="font-heading text-xs tracking-[0.2em] text-gold-300 uppercase">Cantt, Guna · Admin Panel</p>
+          {isCloud && (
+            <span className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[0.65rem] font-bold text-emerald-400">
+              Appwrite Cloud Active
+            </span>
+          )}
         </div>
         <div className="mt-8 space-y-4">
+          {isCloud && (
+            <label className="block">
+              <span className="mb-1.5 block font-heading text-xs font-semibold tracking-wide text-royal-100/80 uppercase">Administrator Email</span>
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => { setEmail(e.target.value); setError(false); }}
+                placeholder="admin@school.com"
+                className="w-full rounded-xl border border-white/15 bg-white/10 px-4 py-3 font-body text-sm text-white placeholder-royal-100/40 outline-none transition focus:border-gold-300/60 focus:ring-4 focus:ring-gold-300/20"
+              />
+            </label>
+          )}
+
           <label className="block">
             <span className="mb-1.5 block font-heading text-xs font-semibold tracking-wide text-royal-100/80 uppercase">Administrator Password</span>
             <div className="relative">
               <input
                 type={show ? "text" : "password"}
-                value={pass} autoFocus
+                value={pass} autoFocus={!isCloud}
                 autoComplete="new-password"
                 onChange={(e) => { setPass(e.target.value); setError(false); }}
                 placeholder="Enter admin password"
@@ -57,7 +90,7 @@ export default function Login({ onSuccess }: { onSuccess: () => void }) {
             </div>
           </label>
           {error && <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="font-body text-xs text-red-300">Incorrect password.</motion.p>}
-          <button type="submit" disabled={loading || !pass} className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-gold-400 to-gold-300 px-5 py-3.5 font-heading font-semibold text-royal-900 transition hover:-translate-y-0.5 disabled:opacity-50">
+          <button type="submit" disabled={loading || (isCloud && !email) || !pass} className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-gold-400 to-gold-300 px-5 py-3.5 font-heading font-semibold text-royal-900 transition hover:-translate-y-0.5 disabled:opacity-50">
             {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}
             {loading ? "Verifying…" : "Login to Admin Panel"}
           </button>
