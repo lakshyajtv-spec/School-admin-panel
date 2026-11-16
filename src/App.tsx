@@ -11,9 +11,11 @@ import VocationalEducation from "@/components/VocationalEducation";
 import CampusGallery from "@/components/CampusGallery";
 import Achievements from "@/components/Achievements";
 import NoticeBoard from "@/components/NoticeBoard";
+import ContactSection from "@/components/ContactSection";
 import Footer from "@/components/Footer";
 import AdminApp from "@/admin/AdminApp";
 import { LanguageProvider, useLanguage } from "@/i18n/LanguageContext";
+import { IMAGES } from "@/data/site";
 
 /**
  * Tiny hash router:
@@ -49,6 +51,16 @@ function PublicSite() {
     ensureMeta("og:description", description);
     ensureMeta("og:type", "website");
     ensureMeta("og:url", window.location.origin + "/");
+    ensureMeta("og:image", cms.hero?.bgImage || IMAGES.hero);
+    ensureMeta("og:image:alt", cms.settings.schoolName);
+    const ensureNameMeta = (name: string, content: string) => {
+      let tag = document.querySelector<HTMLMetaElement>(`meta[name="${name}"]`);
+      if (!tag) { tag = document.createElement("meta"); tag.name = name; document.head.append(tag); }
+      tag.content = content;
+    };
+    ensureNameMeta("twitter:card", "summary_large_image");
+    ensureNameMeta("twitter:title", title);
+    ensureNameMeta("twitter:description", description);
     let canonical = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
     if (!canonical) { canonical = document.createElement("link"); canonical.rel = "canonical"; document.head.append(canonical); }
     canonical.href = window.location.origin + "/";
@@ -80,6 +92,7 @@ function PublicSite() {
         <CampusGallery />
         <Achievements />
         <NoticeBoard />
+        <ContactSection />
       </main>
       <Footer />
     </div>
