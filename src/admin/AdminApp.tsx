@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Bell, Building2, ChevronLeft, Download, ExternalLink,
@@ -10,8 +10,8 @@ import { cn } from "@/utils/cn";
 import { Button } from "@/admin/components/ui/Button";
 import { Toaster } from "react-hot-toast";
 import {
-  authIsLoggedIn, authLogout, exportJSON, importJSON,
-  loadSiteData, resetSiteData, saveSiteData, publishToAppwrite,
+  authLogout, exportJSON, importJSON,
+  loadSiteData, resetSiteData, saveSiteData, publishSiteContent,
   type SiteData,
 } from "@/lib/storage";
 import Login from "@/admin/pages/Login";
@@ -25,6 +25,7 @@ import AchievementsPage from "@/admin/pages/AchievementsPage";
 import VocationalPage from "@/admin/pages/VocationalPage";
 import SettingsPage from "@/admin/pages/SettingsPage";
 import toast from "react-hot-toast";
+import { supabase } from "@/lib/supabase";
 
 /* ============ NAV ============ */
 interface NavItem { id: string; icon: LucideIcon; label: string; }
@@ -74,10 +75,10 @@ function AdminPage() {
 
   const handlePublish = async () => {
     setPublishing(true);
-    const publishPromise = publishToAppwrite(data);
+    const publishPromise = publishSiteContent(data);
     
     toast.promise(publishPromise, {
-      loading: "Publishing changes to Appwrite Cloud...",
+      loading: "Publishing changes to Supabase…",
       success: "Website published and updated successfully!",
       error: (err) => `Publish failed: ${err.message || err}`,
     });
@@ -120,7 +121,7 @@ function AdminPage() {
         <div className="space-y-1.5 border-t border-white/10 p-2">
           <a href="/" onClick={(e) => { e.preventDefault(); window.location.hash = ""; }}
             className="flex items-center gap-2 rounded-xl px-3 py-2.5 font-heading text-[0.75rem] font-semibold text-white hover:bg-white/10"><ExternalLink className="h-4 w-4 text-gold-400" />{!collapsed && "View Website"}</a>
-          <button onClick={() => { authLogout(); window.location.hash = "/admin-lakshya"; window.location.reload(); }}
+          <button onClick={async () => { await authLogout(); window.location.hash = "/admin-lakshya"; window.location.reload(); }}
             className="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 font-heading text-[0.75rem] font-semibold text-royal-100/70 hover:bg-white/5"><LogOut className="h-4 w-4" />{!collapsed && "Logout"}</button>
         </div>
       </aside>
@@ -154,14 +155,28 @@ function AdminPage() {
 
 /* ============ ENTRY ============ */
 export default function AdminApp() {
-  const [loggedIn, setLoggedIn] = useState(() => {
-    try { return authIsLoggedIn(); } catch { return false; }
-  });
+  const [loggedIn, setLoggedIn] = useState(false);
+  const [checking, setChecking] = useState(true);
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      try {
+        if (supabase) {
+          const { data: { user }, error } = await supabase.auth.getUser();
+          if (!error && active && user?.app_metadata?.role === "school_admin") setLoggedIn(true);
+          else if (user) await supabase.auth.signOut();
+        }
+      } finally {
+        if (active) setChecking(false);
+      }
+    })().catch(() => { if (active) setChecking(false); });
+    return () => { active = false; };
+  }, []);
 
   return (
     <>
       <Toaster position="bottom-right" toastOptions={{ style: { fontSize: "0.8rem", fontFamily: "Inter, sans-serif" } }} />
-      {loggedIn ? <AdminPage /> : <Login onSuccess={() => setLoggedIn(true)} />}
+      {checking ? <div className="grid min-h-screen place-items-center bg-royal-950 text-white">Verifying secure session…</div> : loggedIn ? <AdminPage /> : <Login onSuccess={() => setLoggedIn(true)} />}
     </>
   );
 }

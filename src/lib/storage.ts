@@ -1,14 +1,9 @@
 /** 
- * localStorage + Appwrite unified data adapter — always returns valid data, never throws.
- * Appwrite Cloud is the single source of truth for the production deployment.
+ * localStorage + Supabase unified data adapter — always returns valid data, never throws.
+ * Supabase Cloud is the single source of truth for the production deployment.
  */
 import { STORAGE_KEYS } from "@/config/admin";
-import { databases, storage, account, isAppwriteReady, APPWRITE_CONFIG } from "@/lib/appwrite";
-import { ID } from "appwrite";
-
-const BUCKET_ID = APPWRITE_CONFIG.bucketId;
-const DATABASE_ID = APPWRITE_CONFIG.databaseId;
-const COLLECTION_ID = "website_content"; // Single collection storing all unified CMS documents
+import { supabase } from "@/lib/supabase";
 
 /* ---------- Generic JSON helpers ---------- */
 function lsGet<T>(key: string, fallback: T): T {
@@ -279,143 +274,60 @@ export function importJSON(text: string): SiteData | null {
   }
 }
 
-/* ---------- Auth (Appwrite Cloud based) ---------- */
-import { ADMIN_PASSWORD } from "@/config/admin";
-
-let runtimePassword = ADMIN_PASSWORD;
-
-export function getPassword() { return runtimePassword; }
-export function setPassword(p: string) { if (p.trim().length >= 4) { runtimePassword = p.trim(); authLogout(); } }
-
-/** Logs in using Appwrite Auth Session or localStorage fallback if Appwrite is not configured */
+/* ---------- Supabase authentication, storage, and CMS ---------- */
 export async function authLogin(email: string, pass: string): Promise<boolean> {
-  if (isAppwriteReady()) {
-    try {
-      // Clear previous session if any
-      try { await account.deleteSession("current"); } catch { /* */ }
-      await account.createEmailPasswordSession(email, pass);
-      lsSet(STORAGE_KEYS.auth, "1");
-      return true;
-    } catch (error: any) {
-      console.error("[Auth] Appwrite login failed:", error.message || error);
-      throw new Error(error.message || "Authentication failed. Check credentials.");
-    }
+  if (!supabase) throw new Error("Supabase is not configured. Ask the site owner to configure the public project URL and anon key.");
+  const { error } = await supabase.auth.signInWithPassword({ email, password: pass });
+  if (error) throw new Error("Unable to sign in. Check your credentials and administrator access.");
+  const { data: { user } } = await supabase.auth.getUser();
+  if (user?.app_metadata?.role !== "school_admin") {
+    await supabase.auth.signOut();
+    throw new Error("This account is not authorized to administer the school website.");
   }
-
-  // Fallback mode: standard password check
-  if (pass === getPassword()) {
-    lsSet(STORAGE_KEYS.auth, "1");
-    return true;
-  }
-  return false;
+  return true;
 }
 
-/** Logs out and destroys the Appwrite session */
 export async function authLogout(): Promise<void> {
-  if (isAppwriteReady()) {
-    try {
-      await account.deleteSession("current");
-    } catch { /* */ }
-  }
+  if (supabase) await supabase.auth.signOut();
   lsSet(STORAGE_KEYS.auth, "");
 }
 
 export function authIsLoggedIn(): boolean {
-  return lsGet<string>(STORAGE_KEYS.auth, "") === "1";
+  return false; // Session is verified asynchronously against Supabase by AdminApp.
 }
 
-/* ---------- Image upload (Appwrite Storage, falls back to passthrough URL) ---------- */
-export async function uploadImage(file: File, _folder: string): Promise<string> {
-  if (!isAppwriteReady()) return URL.createObjectURL(file);
-  try {
-    const response = await storage.createFile(BUCKET_ID, ID.unique(), file);
-    // Retrieve public view URL
-    const fileUrl = `${APPWRITE_CONFIG.endpoint}/storage/buckets/${BUCKET_ID}/files/${response.$id}/view?project=${APPWRITE_CONFIG.projectId}`;
-    return fileUrl;
-  } catch (error: any) {
-    console.error("[Storage] Upload failed:", error);
-    throw new Error(error.message || "File upload failed.");
-  }
+export async function uploadImage(file: File, folder: string): Promise<string> {
+  if (!supabase) throw new Error("Supabase is not configured; image upload is unavailable.");
+  if (!file.type.startsWith("image/") || !["image/jpeg", "image/png", "image/webp", "image/avif"].includes(file.type) || file.size > 5 * 1024 * 1024)
+    throw new Error("Choose a JPEG, PNG, WebP or AVIF image under 5 MB.");
+  const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+  const path = `${folder}/${crypto.randomUUID()}.${ext}`;
+  const { error } = await supabase.storage.from("school-media").upload(path, file, { contentType: file.type, upsert: false });
+  if (error) throw new Error("Image upload failed. Confirm admin permissions and storage setup.");
+  return supabase.storage.from("school-media").getPublicUrl(path).data.publicUrl;
 }
 
 export async function deleteImage(url: string) {
-  if (!isAppwriteReady()) return;
-  try {
-    // Extract file ID from view URL
-    const fileId = url.split("/files/")[1]?.split("/")[0];
-    if (fileId) await storage.deleteFile(BUCKET_ID, fileId);
-  } catch { /* */ }
+  if (!supabase) return;
+  const marker = "/school-media/";
+  const path = url.split(marker)[1];
+  if (path) await supabase.storage.from("school-media").remove([decodeURIComponent(path)]);
 }
 
-/* ==========================================================================
-   APPWRITE CMS UNIFIED DOCUMENT INTEGRATION LAYER
-   ========================================================================== */
-
-/** Asynchronously fetches and compiles completely fresh website content from Appwrite */
-export async function fetchFromAppwrite(): Promise<SiteData | null> {
-  if (!isAppwriteReady()) {
-    console.log("[CMS Storage] Appwrite not configured. Using high-performance localStorage fallback.");
-    return null;
-  }
-
-  try {
-    const documentId = "master_cms_data";
-    const doc = await databases.getDocument(DATABASE_ID, COLLECTION_ID, documentId);
-    if (doc && doc.data) {
-      const parsedSiteData = JSON.parse(doc.data) as SiteData;
-      // Cache locally for instant startup
-      lsSet(STORAGE_KEYS.data, parsedSiteData);
-      return parsedSiteData;
-    }
-    return null;
-  } catch (error: any) {
-    // If document doesn't exist yet, we attempt to initialize it with defaults
-    if (error.code === 404) {
-      console.log("[CMS Storage] Document not found. Initializing master document on first-time load...");
-      const fresh = defaultsSiteData();
-      try {
-        await databases.createDocument(DATABASE_ID, COLLECTION_ID, "master_cms_data", { data: JSON.stringify(fresh) });
-        return fresh;
-      } catch (createErr) {
-        console.warn("[CMS Storage] Auto-initialization skipped (check Collection attributes/permissions):", createErr);
-      }
-    }
-    console.error("[CMS Storage] Appwrite database load failed. Falling back to local cached copy:", error);
-    return null;
-  }
+export async function fetchSiteContent(): Promise<SiteData | null> {
+  if (!supabase) return null;
+  const { data, error } = await supabase.from("school_site_content").select("content").eq("id", "published").maybeSingle();
+  if (error || !data?.content) return null;
+  const content = data.content as SiteData;
+  lsSet(STORAGE_KEYS.data, content);
+  return content;
 }
 
-/** Publishes website changes immediately to the unified Appwrite document */
-export async function publishToAppwrite(d: SiteData): Promise<void> {
-  if (!isAppwriteReady()) {
-    console.warn("[CMS Storage] Appwrite NOT ready or unconfigured. Skipping remote sync.");
-    return;
-  }
-
-  // Save locally first to guarantee zero state friction
+export async function publishSiteContent(d: SiteData): Promise<void> {
+  if (!supabase) throw new Error("Supabase is not configured. Changes cannot be published remotely.");
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || user?.app_metadata?.role !== "school_admin") throw new Error("Administrator authorization required.");
+  const { error } = await supabase.from("school_site_content").upsert({ id: "published", content: d, updated_at: new Date().toISOString(), updated_by: user.id });
+  if (error) throw new Error("Publish failed. Check that the database migration is applied and this user has the school_admin role.");
   saveSiteData(d);
-
-  try {
-    const documentId = "master_cms_data";
-    // Check if exists
-    let exists = false;
-    try {
-      await databases.getDocument(DATABASE_ID, COLLECTION_ID, documentId);
-      exists = true;
-    } catch { /* */ }
-
-    if (exists) {
-      await databases.updateDocument(DATABASE_ID, COLLECTION_ID, documentId, {
-        data: JSON.stringify(d)
-      });
-    } else {
-      await databases.createDocument(DATABASE_ID, COLLECTION_ID, documentId, {
-        data: JSON.stringify(d)
-      });
-    }
-    console.log("[CMS Storage] Successfully published unified data to Appwrite Cloud.");
-  } catch (error: any) {
-    console.error("[CMS Storage] Failed to publish changes to Appwrite:", error);
-    throw new Error(error.message || "Appwrite publication failed. Check collection permissions or configuration.");
-  }
 }

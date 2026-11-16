@@ -13,7 +13,7 @@ import Achievements from "@/components/Achievements";
 import NoticeBoard from "@/components/NoticeBoard";
 import Footer from "@/components/Footer";
 import AdminApp from "@/admin/AdminApp";
-import { LanguageProvider } from "@/i18n/LanguageContext";
+import { LanguageProvider, useLanguage } from "@/i18n/LanguageContext";
 
 /**
  * Tiny hash router:
@@ -21,16 +21,39 @@ import { LanguageProvider } from "@/i18n/LanguageContext";
  *   anything else (or empty) → public website
  */
 function useHashRoute() {
-  const [hash, setHash] = useState(() => window.location.hash);
+  const [hash, setHash] = useState(() => `${window.location.pathname}${window.location.hash}`);
   useEffect(() => {
-    const onHash = () => setHash(window.location.hash);
+    const onHash = () => setHash(`${window.location.pathname}${window.location.hash}`);
     window.addEventListener("hashchange", onHash);
-    return () => window.removeEventListener("hashchange", onHash);
+    window.addEventListener("popstate", onHash);
+    return () => { window.removeEventListener("hashchange", onHash); window.removeEventListener("popstate", onHash); };
   }, []);
   return hash;
 }
 
 function PublicSite() {
+  const { cms } = useLanguage();
+  useEffect(() => {
+    const title = `${cms.settings.schoolName} | EFA Government School`;
+    document.title = title;
+    const description = cms.settings.footerAbout || "Government higher secondary school in Guna, Madhya Pradesh.";
+    let meta = document.querySelector<HTMLMetaElement>('meta[name="description"]');
+    if (!meta) { meta = document.createElement("meta"); meta.name = "description"; document.head.append(meta); }
+    meta.content = description;
+    const ensureMeta = (property: string, content: string) => {
+      let tag = document.querySelector<HTMLMetaElement>(`meta[property="${property}"]`);
+      if (!tag) { tag = document.createElement("meta"); tag.setAttribute("property", property); document.head.append(tag); }
+      tag.content = content;
+    };
+    ensureMeta("og:title", title);
+    ensureMeta("og:description", description);
+    ensureMeta("og:type", "website");
+    ensureMeta("og:url", window.location.origin + "/");
+    let canonical = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+    if (!canonical) { canonical = document.createElement("link"); canonical.rel = "canonical"; document.head.append(canonical); }
+    canonical.href = window.location.origin + "/";
+  }, [cms.settings.schoolName, cms.settings.footerAbout]);
+
   const { scrollYProgress } = useScroll();
   const progress = useSpring(scrollYProgress, {
     stiffness: 120,
@@ -65,10 +88,16 @@ function PublicSite() {
 
 export default function App() {
   const hash = useHashRoute();
+  const isAdmin = hash.toLowerCase().startsWith("/lakshya-admin") || hash.startsWith("#/admin-lakshya");
+  useEffect(() => {
+    let robots = document.querySelector<HTMLMetaElement>('meta[name="robots"]');
+    if (!robots) { robots = document.createElement("meta"); robots.name = "robots"; document.head.append(robots); }
+    robots.content = isAdmin ? "noindex, nofollow, noarchive" : "index, follow";
+  }, [isAdmin]);
 
   return (
     <LanguageProvider>
-      {hash.startsWith("#/admin-lakshya") ? <AdminApp /> : <PublicSite />}
+      {hash.toLowerCase().startsWith("/lakshya-admin") || hash.startsWith("#/admin-lakshya") ? <AdminApp /> : <PublicSite />}
     </LanguageProvider>
   );
 }
