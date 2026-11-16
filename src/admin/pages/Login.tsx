@@ -3,7 +3,7 @@ import { Eye, EyeOff, Loader2, ShieldCheck } from "lucide-react";
 import { useState } from "react";
 import { Logo } from "@/components/ui/Logo";
 import { authLogin } from "@/lib/storage";
-import { isAppwriteReady } from "@/lib/appwrite";
+import { isSupabaseReady } from "@/lib/supabase";
 import toast from "react-hot-toast";
 
 export default function Login({ onSuccess }: { onSuccess: () => void }) {
@@ -13,13 +13,14 @@ export default function Login({ onSuccess }: { onSuccess: () => void }) {
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const isCloud = isAppwriteReady();
+  const isCloud = isSupabaseReady;
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
-      const success = await authLogin(isCloud ? email : "admin@fallback.local", pass);
+      if (!isCloud) throw new Error("Admin sign-in is unavailable until Supabase is configured.");
+      const success = await authLogin(email, pass);
       if (success) {
         toast.success("Welcome back!");
         onSuccess();
@@ -52,11 +53,9 @@ export default function Login({ onSuccess }: { onSuccess: () => void }) {
           </div>
           <p className="font-display text-lg font-extrabold text-white">GOVT. BOYS H. S. SCHOOL</p>
           <p className="font-heading text-xs tracking-[0.2em] text-gold-300 uppercase">Cantt, Guna · Admin Panel</p>
-          {isCloud && (
-            <span className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[0.65rem] font-bold text-emerald-400">
-              Appwrite Cloud Active
-            </span>
-          )}
+          {isCloud ? (
+            <span className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[0.65rem] font-bold text-emerald-400">Supabase authentication enabled</span>
+          ) : <p className="mt-3 text-sm text-amber-200">Supabase setup required before administrator sign-in.</p>}
         </div>
         <div className="mt-8 space-y-4">
           {isCloud && (

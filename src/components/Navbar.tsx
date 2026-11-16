@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Languages, Menu, X } from "lucide-react";
+import { Languages, Menu, Search, X } from "lucide-react";
 import { NAV_LINKS } from "@/data/site";
 import { Logo } from "@/components/ui/Logo";
 import { useLanguage } from "@/i18n/LanguageContext";
@@ -30,6 +30,11 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState("#home");
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState<{ id: string; title: string; excerpt: string }[]>([]);
+  const [hasSearched, setHasSearched] = useState(false);
+  const searchRef = useRef<HTMLInputElement>(null);
   const { t } = useLanguage();
 
   useEffect(() => {
@@ -49,6 +54,36 @@ export default function Navbar() {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  useEffect(() => {
+    const onShortcut = (event: KeyboardEvent) => {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault(); setSearchOpen(true);
+      }
+      if (event.key === "Escape") setSearchOpen(false);
+    };
+    window.addEventListener("keydown", onShortcut);
+    return () => window.removeEventListener("keydown", onShortcut);
+  }, []);
+
+  useEffect(() => { if (searchOpen) window.setTimeout(() => searchRef.current?.focus(), 30); }, [searchOpen]);
+
+  const runSearch = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const term = query.trim().toLocaleLowerCase();
+    setHasSearched(true);
+    if (!term) { setResults([]); return; }
+    const found = Array.from(document.querySelectorAll<HTMLElement>("main section[id]"))
+      .map((section) => {
+        const text = (section.innerText || section.textContent || "").replace(/\\s+/g, " ").trim();
+        const at = text.toLocaleLowerCase().indexOf(term);
+        if (at < 0) return null;
+        const heading = section.querySelector("h1,h2,h3")?.textContent?.trim() || section.id;
+        const start = Math.max(0, at - 45);
+        return { id: section.id, title: heading, excerpt: `${start ? "…" : ""}${text.slice(start, at + term.length + 90)}…` };
+      }).filter((item): item is { id: string; title: string; excerpt: string } => Boolean(item)).slice(0, 8);
+    setResults(found);
+  };
 
   // Lock body scroll only while mobile drawer is open, and cleanly unlock on unmount/close
   useEffect(() => {
@@ -159,6 +194,9 @@ export default function Navbar() {
 
         {/* Action button & Mobile toggle */}
         <div className="flex shrink-0 items-center gap-2">
+          <button type="button" onClick={() => { setSearchOpen(true); setOpen(false); }} aria-label="Search this website" className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-royal-100 bg-white/80 text-royal-700 shadow-sm transition hover:bg-royal-50">
+            <Search className="h-4 w-4" />
+          </button>
           <div className="hidden sm:block">
             <LanguageSwitch />
           </div>
@@ -207,6 +245,27 @@ export default function Navbar() {
             </div>
           </motion.div>
         )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {searchOpen && <motion.div className="fixed inset-0 z-[100] flex items-start justify-center bg-royal-950/60 px-4 pt-[12vh] backdrop-blur-sm" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onMouseDown={(event) => { if (event.target === event.currentTarget) setSearchOpen(false); }}>
+          <motion.div role="dialog" aria-modal="true" aria-labelledby="site-search-title" className="w-full max-w-2xl overflow-hidden rounded-3xl bg-white shadow-2xl" initial={{ y: 18, scale: .98 }} animate={{ y: 0, scale: 1 }} exit={{ y: 12, scale: .98 }}>
+            <form onSubmit={runSearch} className="flex items-center gap-3 border-b border-slate-100 p-4 sm:p-5">
+              <Search className="h-5 w-5 shrink-0 text-royal-700" />
+              <label id="site-search-title" className="sr-only">Search school website</label>
+              <input ref={searchRef} value={query} onChange={(event) => { setQuery(event.target.value); setHasSearched(false); }} placeholder="Search school website…" className="min-w-0 flex-1 bg-transparent py-2 text-base text-slate-900 outline-none" />
+              <kbd className="hidden rounded-md bg-slate-100 px-2 py-1 text-xs text-slate-500 sm:inline">Enter</kbd>
+              <button type="button" aria-label="Close search" onClick={() => setSearchOpen(false)} className="rounded-full p-2 text-slate-500 hover:bg-slate-100"><X className="h-5 w-5" /></button>
+            </form>
+            <div className="max-h-[55vh] overflow-y-auto p-3">
+              {hasSearched && query.trim() && results.length === 0 && <p className="px-4 py-8 text-center text-sm text-slate-500">No matching school information. Press Enter to search.</p>}
+              {!query.trim() && <p className="px-4 py-6 text-sm text-slate-500">Search sections and published school information.</p>}
+              {results.map((result) => <button key={result.id} type="button" onClick={() => { setSearchOpen(false); document.getElementById(result.id)?.scrollIntoView({ behavior: "smooth", block: "start" }); window.history.replaceState(null, "", `#${result.id}`); }} className="block w-full rounded-2xl px-4 py-3 text-left transition hover:bg-royal-50">
+                <span className="block font-heading font-semibold text-royal-900">{result.title}</span><span className="mt-1 block text-sm leading-5 text-slate-600">{result.excerpt}</span>
+              </button>)}
+            </div>
+            <div className="border-t border-slate-100 px-5 py-3 text-xs text-slate-400">Tip: press Ctrl+K or ⌘K to open search</div>
+          </motion.div>
+        </motion.div>}
       </AnimatePresence>
     </motion.header>
   );

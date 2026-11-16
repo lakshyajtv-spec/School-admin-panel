@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ArrowRight, BellRing, CalendarDays, FileText } from "lucide-react";
+import { BellRing, CalendarDays, FileText } from "lucide-react";
 import { Reveal, SectionHeading } from "@/components/ui/Reveal";
 import { useT } from "@/i18n/LanguageContext";
 import { cn } from "@/utils/cn";
@@ -67,10 +67,7 @@ export default function NoticeBoard() {
                       <CalendarDays className="h-3.5 w-3.5 text-gold-500" />
                       {n.date}
                     </span>
-                    <span className="inline-flex items-center gap-1 font-heading text-xs font-semibold text-royal-700">
-                      {t.notices.read}
-                      <ArrowRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-1" />
-                    </span>
+                    <span className="font-heading text-xs font-semibold text-slate-400">{t.notices.boardLabel}</span>
                   </div>
                 </motion.div>
               </Reveal>

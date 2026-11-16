@@ -3,7 +3,8 @@ import { KeyRound, Plus, Save, Settings2, Trash2 } from "lucide-react";
 import { Button } from "@/admin/components/ui/Button";
 import { Card } from "@/admin/components/ui/Card";
 import { Input } from "@/admin/components/ui/Input";
-import { setPassword, type SiteData } from "@/lib/storage";
+import { type SiteData } from "@/lib/storage";
+import { supabase } from "@/lib/supabase";
 import toast from "react-hot-toast";
 
 export default function SettingsPage({ data, update }: { data: SiteData; update: (d: SiteData) => void }) {
@@ -67,10 +68,12 @@ export default function SettingsPage({ data, update }: { data: SiteData; update:
         <div className="flex flex-wrap items-end gap-3">
           <Input label="New Password" value={newPass} onChange={setNewPass} type="password" className="w-full max-w-xs" />
           <Button icon={Save} onClick={() => {
-            if (newPass.trim().length < 4) { toast.error("Min 4 characters"); return; }
-            setPassword(newPass.trim());
-            setNewPass("");
-            toast.success("Password updated");
+            if (newPass.trim().length < 8) { toast.error("Use at least 8 characters"); return; }
+            if (!supabase) { toast.error("Supabase is not configured"); return; }
+            void supabase.auth.updateUser({ password: newPass.trim() }).then(({ error }) => {
+              if (error) toast.error("Password could not be updated");
+              else { setNewPass(""); toast.success("Password updated"); }
+            });
           }}>Update</Button>
         </div>
       </Card>

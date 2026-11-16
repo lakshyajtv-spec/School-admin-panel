@@ -13,6 +13,7 @@ export const NAV_LINKS = [
   { key: "gallery", href: "#gallery" },
   { key: "vocational", href: "#vocational" },
   { key: "principal", href: "#principal" },
+  { key: "contact", href: "#contact" },
 ] as const;
 
 export type NavKey = (typeof NAV_LINKS)[number]["key"];

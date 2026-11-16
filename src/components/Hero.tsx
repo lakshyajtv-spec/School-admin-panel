@@ -17,7 +17,7 @@ export default function Hero() {
   const { t, cms } = useLanguage();
   const reduced = useReducedMotion();
 
-  // Dynamically resolve custom background or card images from Appwrite CMS
+  // Dynamically resolve custom background or card images from Supabase CMS
   const bgImage = cms.hero?.bgImage || IMAGES.hero;
   const cardImage = cms.hero?.cardImage || IMAGES.heroCard;
 

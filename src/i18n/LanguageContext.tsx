@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { en, hi, type Content, type Lang } from "@/i18n/content";
-import { loadSiteData, fetchFromAppwrite, type SiteData } from "@/lib/storage";
+import { loadSiteData, fetchSiteContent, type SiteData } from "@/lib/storage";
 
 type LanguageValue = {
   lang: Lang;
@@ -22,8 +22,8 @@ function readLang(): Lang {
 }
 
 /**
- * Merges Appwrite CMS records directly into the English/Hindi translation tree
- * at runtime. This connects every single public frontend component to the Appwrite
+ * Merges Supabase CMS records directly into the English/Hindi translation tree
+ * at runtime. This connects every single public frontend component to the Supabase
  * database dynamically, while keeping localization perfectly intact.
  */
 function mergeContent(lang: Lang, cms: SiteData): Content {
@@ -175,9 +175,9 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     setT(mergeContent(lang, loadSiteData()));
   }, [lang]);
 
-  // Load fresh content from Appwrite database on mount
+  // Load fresh content from Supabase database on mount
   useEffect(() => {
-    fetchFromAppwrite().then((freshData: SiteData | null) => {
+    fetchSiteContent().then((freshData: SiteData | null) => {
       if (freshData) {
         setCMS(freshData);
         setT(mergeContent(lang, freshData));
@@ -185,19 +185,25 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     });
   }, [lang]);
 
-  // Poll CMS changes every 2 seconds (very cheap, just reads localStorage)
+  // Refresh local edits immediately and published CMS content across browsers periodically.
   useEffect(() => {
-    const id = setInterval(() => {
-      const fresh = loadSiteData();
-      setCMS((prev) => {
-        if (JSON.stringify(fresh) !== JSON.stringify(prev)) {
-          setT(mergeContent(lang, fresh));
+    const sync = async () => {
+      const fresh = await fetchSiteContent();
+      if (fresh) {
+        setCMS((prev) => {
+          if (JSON.stringify(fresh) !== JSON.stringify(prev)) setT(mergeContent(lang, fresh));
           return fresh;
-        }
-        return prev;
+        });
+        return;
+      }
+      const cached = loadSiteData();
+      setCMS((prev) => {
+        if (JSON.stringify(cached) !== JSON.stringify(prev)) setT(mergeContent(lang, cached));
+        return cached;
       });
-    }, 2000);
-    return () => clearInterval(id);
+    };
+    const id = window.setInterval(() => { void sync(); }, 15000);
+    return () => window.clearInterval(id);
   }, [lang]);
 
   const setLang = useCallback((l: Lang) => setLangState(l), []);

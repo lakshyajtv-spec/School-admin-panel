@@ -9,12 +9,10 @@ import {
 } from "lucide-react";
 import { NAV_LINKS } from "@/data/site";
 import { Logo } from "@/components/ui/Logo";
-import { useT } from "@/i18n/LanguageContext";
-
-const socials = [Globe, MessageCircle, GraduationCap, Wrench];
+import { useLanguage } from "@/i18n/LanguageContext";
 
 export default function Footer() {
-  const t = useT();
+  const { t, cms } = useLanguage();
 
   return (
     <footer className="relative overflow-hidden bg-royal-950 text-royal-100/75">
@@ -44,18 +42,13 @@ export default function Footer() {
             <p className="mt-4 max-w-sm font-body text-sm leading-relaxed">
               {t.footer.about}
             </p>
-            <div className="mt-6 flex items-center gap-3">
-              {socials.map((Icon, i) => (
-                <a
-                  key={i}
-                  href="#home"
-                  aria-label="School link"
-                  className="flex h-10 w-10 items-center justify-center rounded-full border border-white/12 bg-white/5 text-royal-100/80 transition-all duration-300 hover:-translate-y-1 hover:border-gold-400/40 hover:bg-gold-400/15 hover:text-gold-200"
-                >
-                  <Icon className="h-4 w-4" />
-                </a>
-              ))}
-            </div>
+            {cms.settings.socialLinks.length > 0 && <div className="mt-6 flex items-center gap-3">
+              {cms.settings.socialLinks.filter((social) => { try { return new URL(social.url).protocol === "https:" && Boolean(social.platform.trim()); } catch { return false; } }).map((social) => {
+                const platform = social.platform.toLowerCase();
+                const Icon = platform.includes("whatsapp") ? MessageCircle : platform.includes("trade") ? Wrench : platform.includes("school") ? GraduationCap : Globe;
+                return <a key={social.platform + social.url} href={social.url} target="_blank" rel="noopener noreferrer" aria-label={social.platform} className="flex h-10 w-10 items-center justify-center rounded-full border border-white/12 bg-white/5 text-royal-100/80 transition-all duration-300 hover:-translate-y-1 hover:border-gold-400/40 hover:bg-gold-400/15 hover:text-gold-200"><Icon className="h-4 w-4" /></a>;
+              })}
+            </div>}
           </div>
 
           {/* Quick Links */}

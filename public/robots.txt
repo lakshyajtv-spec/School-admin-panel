@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+Disallow: /Lakshya-admin
+Disallow: /Lakshya-admin/

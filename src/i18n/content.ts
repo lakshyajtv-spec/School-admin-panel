@@ -23,6 +23,7 @@ export const en = {
     gallery: "Gallery",
     vocational: "Vocational",
     principal: "Principal",
+    contact: "Contact",
     menu: "Menu",
   },
   hero: {
@@ -378,6 +379,7 @@ export const en = {
     highlight: "Notice Board",
     desc: "Latest information about examinations, holidays and school activities.",
     read: "Read",
+    boardLabel: "Notice board",
     items: [
       {
         tag: "Latest Notice",
@@ -455,6 +457,7 @@ export const hi: Writable<Content> = {
     gallery: "चित्र दीर्घा",
     vocational: "व्यावसायिक",
     principal: "प्राचार्य",
+    contact: "संपर्क",
     menu: "मेन्यू",
   },
   hero: {
@@ -810,6 +813,7 @@ export const hi: Writable<Content> = {
     highlight: "सूचना पटल",
     desc: "परीक्षा, अवकाश एवं विद्यालयीन गतिविधियों से संबंधित नवीनतम जानकारी।",
     read: "देखें",
+    boardLabel: "सूचना पट्ट",
     items: [
       {
         tag: "नवीन सूचना",
